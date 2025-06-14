@@ -3,6 +3,7 @@ altair==5.5.0
 av==14.4.0
 ctranslate2==4.6.0
 einops==0.8.1
+openpyxl # <--- ¡Añade esta línea
 faster-whisper==1.1.1
 ffmpeg-python==0.2.0
 filelock==3.18.0

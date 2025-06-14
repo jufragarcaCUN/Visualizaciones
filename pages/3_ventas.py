@@ -18,7 +18,7 @@ st.set_page_config(layout="wide")
 # PASO 3: Carga y preprocesamiento del archivo principal
 # ===================================================
 # Definir la ruta base donde se encuentra el archivo de datos.
-carpeta_base = Pathcarpeta_base = Path(__file__).parent / "data"
+carpeta_base = Path(__file__).parent.parent / "data"
 # Construir la ruta completa al archivo Excel principal.
 archivo_principal = carpeta_base / "reporte_completo_con_celular_ventas_fecha_corregida.xlsx"
 

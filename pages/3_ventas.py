@@ -31,15 +31,15 @@ except FileNotFoundError:
 
 # Configurar la configuración regional a español para el formato de fechas.
 # Esto es crucial para que `pd.to_datetime` pueda interpretar nombres de meses en español.
-try:
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-except locale.Error:
+#try:
+    #locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+#except locale.Error:
     st.warning("No se pudo establecer la configuración regional 'es_ES.UTF-8'. La conversión de fechas con nombres de meses en español podría fallar. Asegúrese de que el entorno soporte esta configuración regional.")
     # Intenta con una alternativa común para sistemas Windows si la anterior falla
-    try:
-        locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')
-    except locale.Error:
-        st.warning("No se pudo establecer la configuración regional 'Spanish_Spain.1252' tampoco. La conversión de fechas podría ser inconsistente.")
+    #try:
+        #locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')
+    #except locale.Error:
+        #st.warning("No se pudo establecer la configuración regional 'Spanish_Spain.1252' tampoco. La conversión de fechas podría ser inconsistente.")
 
 
 # Convertir la columna 'fecha' a formato de fecha y hora, manejando errores.

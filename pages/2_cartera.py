@@ -484,7 +484,7 @@ def main():
 
 
     # El resto de tu código para mostrar métricas y gráficos permanece igual
-    st.title("📊 Dashboard de Análisis de Ventas")
+    st.title("📊 Dashboard de Análisis Cartera")
 
     if df_filtrado.empty:
         st.warning("🚨 ¡Atención! No hay datos para mostrar con los filtros seleccionados. Ajusta tus filtros.")

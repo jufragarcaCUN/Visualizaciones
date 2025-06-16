@@ -80,14 +80,12 @@ def display_summary_metrics(df_to_display):
     cols = st.columns(5)
 
     # Muestra el Puntaje promedio
-    with cols[0]:
-        promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean()
-        st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}")
+    promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean() # Aquí no se multiplica por 100
+        st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}") # Aquí no se añade "%"
 
     # Muestra la Confianza promedio
-    with cols[1]:
-        promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean()*100
-        st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")
+    promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean()*100 # ¡Aquí sí se multiplica por 100!
+        st.metric("Confianza promedio", f"{promedio_confianza:.2f}%") # ¡Aquí sí se añade "%"!")
 
     # Muestra la Polaridad promedio (como porcentaje)
     with cols[2]:

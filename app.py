@@ -86,6 +86,7 @@ st.markdown(
         border-radius: 15px; /* Bordes ligeramente redondeados para el logo */
         box-shadow: 0 0 25px rgba(0, 255, 0, 0.6); /* Sombra que brilla en verde */
         animation: pulse 2s infinite alternate; /* Animación de pulsación sutil */
+        background-color: white;
     }}
 
     @keyframes pulse {{

@@ -132,7 +132,4 @@ st.markdown(
 # ===================================================
 # Si solo quieres ver la barra lateral, puedes poner algo simple aquí
 with st.sidebar:
-    #st.header("Este es el Sidebar")
-    #st.write("¡Aquí puedes poner contenido futuro si lo necesitas!")
-    #st.button("Un Botón de Ejemplo")
-    #st.checkbox("Una Opción de Ejemplo")
+

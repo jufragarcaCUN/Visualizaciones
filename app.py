@@ -59,10 +59,15 @@ st.markdown(
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 200px;
-        max-width: 800px; /* Limita el ancho del contenido si es necesario */
-        margin: auto; /* Centra el wrapper */
-        height: 100vh; /* Ocupa toda la altura disponible para centrar verticalmente */
+        padding: 20px; /* ¡Vuelve a un padding más razonable! */
+        /* O si solo quieres espacio vertical: */
+        /* padding-top: 50px; */
+        /* padding-bottom: 50px; */
+        /* padding-left: 20px; */
+        /* padding-right: 20px; */
+        max-width: 800px;
+        margin: auto;
+        height: 100vh;
     }}
 
     .main-title{{

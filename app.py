@@ -41,7 +41,7 @@ st.markdown(
 
     /* Fondo negro para toda la aplicación */
     .stApp {{
-        background-color: #000000; 
+        background-color: #808080; 
         color: #ffffff; /* Color de texto blanco por defecto */
     }}
 

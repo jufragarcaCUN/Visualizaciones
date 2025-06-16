@@ -53,53 +53,56 @@ if 'asesor' in df.columns:
 # ===================================================
 # PASO 4: Función para mostrar métricas resumen
 # ===================================================
+import streamlit as st
+import pandas as pd
+
 def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
 
-    # Columnas a excluir de las métricas resumen.
-    cols_to_exclude = [
-        "id_", "asesor", "asesor_corto", "celular", "fecha", "fecha_convertida",
-        "puntaje", "efectiva", "clasificacion", "confianza", "palabras",
-        "oraciones", "archivo"
-    ]
+    # Define las métricas exactas que quieres mostrar y sus nombres de columna correspondientes
+    # en el DataFrame.
+    # Es crucial que 'puntaje', 'confianza', 'polarity', y 'subjectivity' sean los nombres reales de tus columnas.
+    metrics_to_display_map = {
+        "Puntaje promedio": "puntaje",
+        "Confianza promedio": "confianza",
+        "Polaridad promedio": "polarity",
+        "Subjetividad promedio": "subjectivity",
+    }
 
-    # Columnas que deben mostrarse como porcentajes.
-    percent_display_cols = ['polarity', 'subjectivity']
+    # Verifica si el DataFrame contiene todas las columnas necesarias
+    for display_name, col_name in metrics_to_display_map.items():
+        if col_name not in df_to_display.columns:
+            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor, verifica el nombre de la columna.")
+            return
 
-    # Identificar columnas numéricas.
-    numeric_cols = df_to_display.select_dtypes(include=['number']).columns.tolist()
+    # Crea las columnas en Streamlit para mostrar las métricas
+    # Necesitamos 5 columnas: 4 para los promedios y 1 para el conteo de llamadas.
+    cols = st.columns(5)
 
-    # Filtrar columnas numéricas para las métricas, excluyendo las no deseadas.
-    metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
+    # Muestra el Puntaje promedio
+    with cols[0]:
+        promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean()
+        st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}")
 
-    if not metric_cols:
-        st.warning("⚠️ No se encontraron columnas numéricas adecuadas para mostrar métricas promedio.")
-        return
+    # Muestra la Confianza promedio
+    with cols[1]:
+        promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean()
+        st.metric("Confianza promedio", f"{promedio_confianza:.2f}")
 
-    num_metrics = len(metric_cols)
-    num_rows = (num_metrics + 3) // 4 # 4 métricas por fila
+    # Muestra la Polaridad promedio (como porcentaje)
+    with cols[2]:
+        promedio_polaridad = df_to_display[metrics_to_display_map["Polaridad promedio"]].mean() * 100
+        st.metric("Polaridad promedio", f"{promedio_polaridad:.2f}%")
 
-    for i in range(num_rows):
-        cols = st.columns(4)
-        for j in range(4):
-            metric_index = i * 4 + j
-            if metric_index < num_metrics:
-                col_name = metric_cols[metric_index]
-                with cols[j]:
-                    promedio_valor = df_to_display[col_name].mean()
-                    display_value = promedio_valor
-                    suffix = ""
+    # Muestra la Subjetividad promedio (como porcentaje)
+    with cols[3]:
+        promedio_subjetividad = df_to_display[metrics_to_display_map["Subjetividad promedio"]].mean() * 100
+        st.metric("Subjetividad promedio", f"{promedio_subjetividad:.2f}%")
 
-                    if col_name in percent_display_cols:
-                        display_value *= 100
-                        suffix = "%"
-
-                    metric_label = f"Promedio {col_name.replace('_', ' ').capitalize()}"
-                    st.metric(metric_label, f"{display_value:.2f}{suffix}")
-            else:
-                break
-
-# ===================================================
+    # Muestra el Conteo de llamadas
+    with cols[4]:
+        conteo_llamadas = len(df_to_display) # El número de filas es el conteo de llamadas
+        st.metric("Conteo llamadas", f"{conteo_llamadas}")# ===================================================
 # PASO 5: Función para gráfico de puntaje total por asesor
 # ===================================================
 def graficar_puntaje_total(df_to_graph):

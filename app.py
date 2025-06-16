@@ -131,5 +131,5 @@ st.markdown(
 # 5. Contenido del Sidebar (Ejemplo)
 # ===================================================
 # Si solo quieres ver la barra lateral, puedes poner algo simple aquí
-with st.sidebar:
+#with st.sidebar:
 

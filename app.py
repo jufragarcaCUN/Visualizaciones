@@ -59,7 +59,7 @@ st.markdown(
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 20px;
+        padding: 200px;
         max-width: 800px; /* Limita el ancho del contenido si es necesario */
         margin: auto; /* Centra el wrapper */
         height: 100vh; /* Ocupa toda la altura disponible para centrar verticalmente */

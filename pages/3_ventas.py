@@ -79,13 +79,14 @@ def display_summary_metrics(df_to_display):
     # Necesitamos 5 columnas: 4 para los promedios y 1 para el conteo de llamadas.
     cols = st.columns(5)
 
-    # Muestra el Puntaje promedio
-    promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean() # Aquí no se multiplica por 100
-        st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}") # Aquí no se añade "%"
+   # Muestra el Puntaje promedio
+promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean() * 100  # Multiplicamos por 100
+st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")  # Mostramos como porcentaje
 
-    # Muestra la Confianza promedio
-    promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean()*100 # ¡Aquí sí se multiplica por 100!
-        st.metric("Confianza promedio", f"{promedio_confianza:.2f}%") # ¡Aquí sí se añade "%"!")
+# Muestra la Confianza promedio
+promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean() * 100  # Multiplicamos por 100
+st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")  # Mostramos como porcentaje
+
 
     # Muestra la Polaridad promedio (como porcentaje)
     with cols[2]:

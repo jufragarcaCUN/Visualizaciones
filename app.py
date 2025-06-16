@@ -65,12 +65,13 @@ st.markdown(
         height: 100vh; /* Ocupa toda la altura disponible para centrar verticalmente */
     }}
 
-    .main-title {{
-        font-size: 3.5em; /* Tamaño grande para el título principal */
-        font-weight: bold;
-        color: #31A354; /* Un verde vibrante para el título */
-        margin-bottom: 0.2em;
-        text-shadow: 2px 2px 8px rgba(0, 255, 0, 0.4); /* Sombra sutil verde */
+    .main-title{{
+    font-family: 'Montserrat', sans-serif; /* Aquí se aplica la fuente */
+    font-size: 3.5em; /* Tamaño grande para el título principal */
+    font-weight: bold;
+    color: #31A354; /* Un verde vibrante para el título */
+    margin-bottom: 0.2em;
+    text-shadow: 2px 2px 8px rgba(0, 255, 0, 0.4); /* Sombra sutil verde */
     }}
 
     .sub-title {{
@@ -120,8 +121,8 @@ st.markdown(
 st.markdown(
     f"""
     <div class="content-wrapper">
-        <p class="main-title">BIENVENIDO A CUN</p>
-        <p class="sub-title">Corporación Unificada Nacional de Educación Superior</p>
+        <p class="main-title">DESEMPEÑO LLAMADA POR ASESOR</p>
+        <p class="sub-title"></p>
         {"<img src='data:image/png;base64," + encoded_logo + "' class='logo-img'>" if encoded_logo else ""}
     </div>
     """,

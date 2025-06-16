@@ -6,7 +6,7 @@ from pathlib import Path
 # 1. Configuración inicial de la página
 # ===================================================
 st.set_page_config(
-    page_title="Bienvenido a CUN",
+    page_title="Desempeño llamada por asesor",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded" # ¡Asegura que la barra lateral esté visible!
@@ -39,7 +39,7 @@ st.markdown(
         display: none !important;
     }}
 
-    /* Fondo negro para toda la aplicación */
+    /* Fondo negro de la aplicación  */
     .stApp {{
         background-color: #07243e; 
         color: #ffffff; /* Color de texto blanco por defecto */

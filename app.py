@@ -67,7 +67,7 @@ st.markdown(
 
     .main-title{{
     font-family: 'Montserrat', sans-serif; /* Aquí se aplica la fuente */
-    font-size: 16em; /* Mucho más grande, pero manejable */
+    font-size: 6em; /* Mucho más grande, pero manejable */
     font-weight: bold;
     color: #31A354; /* Un verde vibrante para el título */
     margin-bottom: 0.2em;

@@ -79,13 +79,15 @@ def display_summary_metrics(df_to_display):
     # Necesitamos 5 columnas: 4 para los promedios y 1 para el conteo de llamadas.
     cols = st.columns(5)
 
-   # Muestra el Puntaje promedio
-promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean() * 100  # Multiplicamos por 100
-st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")  # Mostramos como porcentaje
+    # Muestra el Puntaje promedio
+    with cols[0]: # INDENTACION CORREGIDA AQUI
+        promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean() * 100
+        st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")
 
-# Muestra la Confianza promedio
-promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean() * 100  # Multiplicamos por 100
-st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")  # Mostramos como porcentaje
+    # Muestra la Confianza promedio
+    with cols[1]: # INDENTACION CORREGIDA AQUI
+        promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean() * 100
+        st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")
 
 
     # Muestra la Polaridad promedio (como porcentaje)
@@ -101,7 +103,8 @@ st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")  # Mostramos como 
     # Muestra el Conteo de llamadas
     with cols[4]:
         conteo_llamadas = len(df_to_display) # El número de filas es el conteo de llamadas
-        st.metric("Conteo llamadas", f"{conteo_llamadas}")# ===================================================
+        st.metric("Conteo llamadas", f"{conteo_llamadas}")
+# ===================================================
 # PASO 5: Función para gráfico de puntaje total por asesor
 # ===================================================
 def graficar_puntaje_total(df_to_graph):
@@ -316,7 +319,7 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
             st.info("No hay datos de 'subjectivity' para mostrar el indicador de Subjetividad.")
 # ===================================================
 # PASO 8: Función para mostrar busbujas
-# ===================================================      
+# ===================================================        
 # import plotly.express as px
 import pandas as pd
 import streamlit as st
@@ -345,14 +348,14 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
     # Crear el gráfico de burbujas
     fig = px.scatter(
         df_agrupado_por_asesor,
-        x="promedio_polaridad",       # Eje X: Polaridad Promedio
-        y="promedio_confianza",       # Eje Y: Confianza Promedio
-        size="numero_llamadas",       # Tamaño de la burbuja: Número de Llamadas
-        color="promedio_polaridad",   # Color de la burbuja: Basado en el valor de polaridad promedio
+        x="promedio_polaridad",         # Eje X: Polaridad Promedio
+        y="promedio_confianza",         # Eje Y: Confianza Promedio
+        size="numero_llamadas",         # Tamaño de la burbuja: Número de Llamadas
+        color="promedio_polaridad",     # Color de la burbuja: Basado en el valor de polaridad promedio
         color_continuous_scale="Greens",
-        hover_name="asesor",          # Muestra el nombre del asesor al pasar el mouse
-        log_x=False,                  # No escalar logarítmicamente el eje X
-        size_max=60,                  # Tamaño máximo para las burbujas más grandes (ajustable)
+        hover_name="asesor",            # Muestra el nombre del asesor al pasar el mouse
+        log_x=False,                    # No escalar logarítmicamente el eje X
+        size_max=60,                    # Tamaño máximo para las burbujas más grandes (ajustable)
         title="📊 Polaridad Promedio vs. Confianza Promedio por Asesor (Tamaño = # Llamadas)",
         labels={
             "promedio_polaridad": "Polaridad Promedio",
@@ -368,11 +371,11 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
         font=dict(family="Arial", size=14),
         title_x=0.5,
         xaxis=dict(range=[-0.2, 0.5]), # Rango fijo para polaridad
-        yaxis=dict(range=[0.6, 1])   # Rango fijo para confianza (asumiendo de 0 a 1)
+        yaxis=dict(range=[0.6, 1])     # Rango fijo para confianza (asumiendo de 0 a 1)
     )
 
     # Mostrar el gráfico en Streamlit
-    st.plotly_chart(fig, use_container_width=True)      
+    st.plotly_chart(fig, use_container_width=True)        
 # ===================================================
 # PASO 8: Función para mostrar acordeones por asesor
 # ===================================================

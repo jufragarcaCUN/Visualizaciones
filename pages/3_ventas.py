@@ -183,7 +183,6 @@ def graficar_polaridad_asesor_total(df_to_graph):
     # Mostrar gráfico con scroll si es necesario
     st.plotly_chart(fig, use_container_width=False) # use_container_width=False permite scroll horizontal
 
-
 # ===================================================
 # PASO 6: Función para heatmap de métricas por asesor
 # ===================================================

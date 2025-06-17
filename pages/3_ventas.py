@@ -1,4 +1,4 @@
-# ===================================================
+## ===================================================
 # PASO 1: Importación de librerías necesarias
 # ===================================================
 import pandas as pd
@@ -138,59 +138,6 @@ def graficar_puntaje_total(df_to_graph):
         title_x=0.5
     )
     st.plotly_chart(fig, use_container_width=True)
-def graficar_asesores_metricas_heatmap(df_to_graph):
-    if df_to_graph is None or df_to_graph.empty or 'asesor' not in df_to_graph.columns:
-        st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'asesor'.")
-        return
-
-    # Asegurar que columnas como cédulas sean tipo texto para que no se tomen como numéricas
-    for col in ["cedula_asesor", "cedula_agente"]:
-        if col in df_to_graph.columns:
-            df_to_graph[col] = df_to_graph[col].astype(str)
-
-    # Seleccionar solo columnas numéricas
-    numeric_cols = df_to_graph.select_dtypes(include=['number']).columns.tolist()
-
-    # Excluir columnas no deseadas
-    cols_to_exclude = [
-        "id_", "celular", "puntaje", "polarity",
-        "subjectivity", "confianza", "palabras", "oraciones",
-        "cedula_asesor", "cedula_agente"
-    ]
-    metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
-
-    if not metric_cols:
-        st.warning("No se encontraron columnas numéricas adecuadas para el Heatmap después de aplicar los filtros.")
-        return
-
-    # Agrupar por asesor y calcular promedio por cada métrica
-    df_grouped = df_to_graph.groupby('asesor')[metric_cols].mean().reset_index()
-
-    if df_grouped.empty:
-        st.warning("No hay datos para mostrar en el Heatmap después de agrupar por asesor.")
-        return
-
-    # Crear matriz para el heatmap
-    df_heatmap = df_grouped.set_index("asesor")[metric_cols]
-
-    # Mostrar columna de control para depurar si lo necesitas
-    # st.write("Columnas incluidas en el Heatmap:", df_heatmap.columns.tolist())
-
-    # Crear heatmap con Plotly
-    fig = px.imshow(
-        df_heatmap,
-        labels=dict(x="Métrica", y="Asesor", color="Valor"),
-        color_continuous_scale='Greens',
-        aspect="auto",
-        title="Heatmap: Asesor vs. Métricas (Promedio)"
-    )
-    fig.update_layout(
-        font=dict(family="Arial", size=12),
-        height=700,
-        title_x=0.5,
-        plot_bgcolor='white'
-    )
-    st.plotly_chart(fig, use_container_width=True)
 
 # ===================================================
 # Función para gráfico de polaridad por asesor
@@ -236,6 +183,7 @@ def graficar_polaridad_asesor_total(df_to_graph):
     # Mostrar gráfico con scroll si es necesario
     st.plotly_chart(fig, use_container_width=False) # use_container_width=False permite scroll horizontal
 
+
 # ===================================================
 # PASO 6: Función para heatmap de métricas por asesor
 # ===================================================
@@ -248,7 +196,7 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
 
     cols_to_exclude = [
         "id_", "celular", "puntaje", "polarity",
-        "subjectivity", "confianza", "palabras", "oraciones","cedula_asesor","cedula_agente"
+        "subjectivity", "confianza", "palabras", "oraciones"
     ]
     metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
 

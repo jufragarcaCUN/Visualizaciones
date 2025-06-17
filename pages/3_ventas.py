@@ -195,7 +195,7 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
 
     cols_to_exclude = [
         "id_", "celular", "puntaje", "polarity",
-        "subjectivity", "confianza", "palabras", "oraciones"
+        "subjectivity", "confianza", "palabras", "oraciones","cedula_asesor","cedula_agente"
     ]
     metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
 

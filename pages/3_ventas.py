@@ -139,50 +139,54 @@ def graficar_puntaje_total(df_to_graph):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# ===================================================
-# Función para gráfico de polaridad por asesor
-# ===================================================
-def graficar_polaridad_asesor_total(df_to_graph):
-    # Verificar si las columnas necesarias existen en el DataFrame
-    if df_to_graph is None or df_to_graph.empty or 'asesor' not in df_to_graph.columns or 'polarity' not in df_to_graph.columns:
-        st.warning("⚠️ Datos incompletos para la gráfica de polaridad por asesor. Asegúrate de tener las columnas 'asesor' y 'polarity'.")
+def graficar_asesores_metricas_heatmap(df_to_graph):
+    if df_to_graph is None or df_to_graph.empty or 'asesor' not in df_to_graph.columns:
+        st.warning("⚠️ Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'asesor'.")
         return
 
-    # Calcular el promedio de 'polarity' por 'asesor'.
-    df_agrupado_por_asesor = df_to_graph.groupby('asesor')['polarity'].mean().reset_index()
+    # Filtrar columnas numéricas
+    numeric_cols = df_to_graph.select_dtypes(include=['number']).columns.tolist()
 
-    # Verificar si el DataFrame agrupado está vacío
-    if df_agrupado_por_asesor.empty: # Corregida la variable aquí
-        st.warning("⚠️ No hay datos para graficar el promedio de polaridad por asesor después de agrupar. Revisa tus filtros.")
+    # Excluir columnas no deseadas
+    cols_to_exclude = [
+        "id_", "celular", "puntaje", "polarity",
+        "subjectivity", "confianza", "palabras", "oraciones"
+    ]
+    metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
+
+    if not metric_cols:
+        st.warning("⚠️ No se encontraron columnas numéricas adecuadas para el Heatmap después de aplicar los filtros.")
         return
 
-    # Crear gráfico de barras
-    fig = px.bar(
-        df_agrupado_por_asesor.sort_values("polarity", ascending=False),
-        x="asesor",
-        y="polarity",
-        text="polarity",
-        color="polarity",
-        color_continuous_scale="Greens", # La escala de color para el gráfico será verde
-        title="📊 Polaridad Promedio por Asesor",
-        labels={"polarity": "Promedio de Polaridad", "asesor": "Asesor"}
+    # Agrupar por asesor y calcular promedios
+    df_grouped = df_to_graph.groupby('asesor')[metric_cols].mean().reset_index()
+
+    if df_grouped.empty:
+        st.warning("⚠️ No hay datos para mostrar en el Heatmap después de agrupar por asesor.")
+        return
+
+    # Calcular promedio general por asesor y seleccionar los 20 más bajos
+    df_grouped["promedio_total"] = df_grouped[metric_cols].mean(axis=1)
+    df_filtrado = df_grouped.sort_values("promedio_total").head(20)
+
+    # Preparar datos para el heatmap
+    df_heatmap = df_filtrado.set_index("asesor")[metric_cols]
+
+    # Crear el heatmap
+    fig2 = px.imshow(
+        df_heatmap,
+        labels=dict(x="Métrica", y="Asesor", color="Valor"),
+        color_continuous_scale='Greens',
+        aspect="auto",
+        title="🔻 20 Asesores con Promedio más Bajo (Heatmap)"
     )
-
-    # Formatear el texto y ajustar diseño
-    fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
-    fig.update_layout(
-        height=600,
-        width=max(800, 50 * len(df_agrupado_por_asesor)), # Aumenta el ancho según número de asesores
-        xaxis_tickangle=-45,
-        plot_bgcolor="white",
-        font=dict(family="Arial", size=14),
+    fig2.update_layout(
+        font=dict(family="Arial", size=12),
+        height=700,
         title_x=0.5,
-        margin=dict(b=150) # Añade un margen inferior para las etiquetas de los asesores
+        plot_bgcolor='white'
     )
-
-    # Mostrar gráfico con scroll si es necesario
-    st.plotly_chart(fig, use_container_width=False) # use_container_width=False permite scroll horizontal
-
+    st.plotly_chart(fig2, use_container_width=True)
 
 # ===================================================
 # PASO 6: Función para heatmap de métricas por asesor

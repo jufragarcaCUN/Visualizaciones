@@ -188,16 +188,15 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-# ===================================================
-# PASO 6: Función para heatmap de métricas por asesor
-# ===================================================
 def graficar_asesores_metricas_heatmap(df_to_graph):
     if df_to_graph is None or df_to_graph.empty or 'asesor' not in df_to_graph.columns:
-        st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'asesor'.")
+        st.warning("⚠️ Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'asesor'.")
         return
 
+    # Filtrar columnas numéricas
     numeric_cols = df_to_graph.select_dtypes(include=['number']).columns.tolist()
 
+    # Excluir columnas no deseadas
     cols_to_exclude = [
         "id_", "celular", "puntaje", "polarity",
         "subjectivity", "confianza", "palabras", "oraciones"
@@ -205,26 +204,34 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
     metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
 
     if not metric_cols:
-        st.warning("No se encontraron columnas numéricas adecuadas para el Heatmap después de aplicar los filtros.")
+        st.warning("⚠️ No se encontraron columnas numéricas adecuadas para el Heatmap después de aplicar los filtros.")
         return
 
-    # Usar 'asesor' para la agrupación. Si 'asesor_corto' es una columna real, úsala.
-    # De lo contrario, puedes crear una versión corta si es necesario.
-    # Por simplicidad y consistencia, usaremos 'asesor' directamente.
+    # Agrupar por asesor y calcular promedios
     df_grouped = df_to_graph.groupby('asesor')[metric_cols].mean().reset_index()
 
     if df_grouped.empty:
-        st.warning("No hay datos para mostrar en el Heatmap después de agrupar por asesor.")
+        st.warning("⚠️ No hay datos para mostrar en el Heatmap después de agrupar por asesor.")
         return
 
-    df_heatmap = df_grouped.set_index("asesor")[metric_cols]
+    # 🔍 Ver qué hay en el DataFrame agrupado
+    st.subheader("🔍 Vista previa de df_grouped antes de filtrar:")
+    st.dataframe(df_grouped)
 
+    # Calcular promedio general por asesor y seleccionar los 20 más bajos
+    df_grouped["promedio_total"] = df_grouped[metric_cols].mean(axis=1)
+    df_filtrado = df_grouped.sort_values("promedio_total").head(20)
+
+    # Preparar datos para el heatmap
+    df_heatmap = df_filtrado.set_index("asesor")[metric_cols]
+
+    # Crear el heatmap
     fig2 = px.imshow(
         df_heatmap,
         labels=dict(x="Métrica", y="Asesor", color="Valor"),
         color_continuous_scale='Greens',
         aspect="auto",
-        title="Heatmap: Asesor vs. Métricas (Promedio)"
+        title="🔻 20 Asesores con Promedio más Bajo (Heatmap)"
     )
     fig2.update_layout(
         font=dict(family="Arial", size=12),
@@ -233,7 +240,6 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
         plot_bgcolor='white'
     )
     st.plotly_chart(fig2, use_container_width=True)
-
 # ===================================================
 # PASO 7: Función para indicadores tipo gauge
 # ===================================================

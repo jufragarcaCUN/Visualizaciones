@@ -436,7 +436,7 @@ def main():
     st.sidebar.header("Filtros")
 
     # --- FILTRO POR ASESOR ---
-    asesores = ["Todos"] + sorted(df["asesor"].dropna().unique())
+    asesores = ["Todos"] + sorted(df["Agente].dropna().unique())
     asesor_seleccionado = st.sidebar.selectbox("👤 Selecciona un asesor", asesores)
 
     df_filtrado = df.copy() # Siempre empezamos con una copia del DF original

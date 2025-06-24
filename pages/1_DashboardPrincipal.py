@@ -37,7 +37,7 @@ if 'asesor' in df.columns:
 def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
     metrics_to_display_map = {
-        "Puntaje promedio": "puntaje",
+        "Puntaje promedio": "Puntaje_Total_%",
         "Confianza promedio": "confianza",
         "Polaridad promedio": "polarity",
         "Subjetividad promedio": "subjectivity",
@@ -49,7 +49,7 @@ def display_summary_metrics(df_to_display):
 
     cols = st.columns(5)
     with cols[0]:
-        promedio_puntaje = df_to_display["puntaje"].mean() * 100
+        promedio_puntaje = df_to_display["Puntaje_Total_%"].mean()
         st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")
     with cols[1]:
         promedio_confianza = df_to_display["confianza"].mean() * 100

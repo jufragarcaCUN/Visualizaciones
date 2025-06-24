@@ -44,7 +44,7 @@ except FileNotFoundError:
 
 # Convertir la columna 'fecha' a formato de fecha y hora, manejando errores.
 # Se usa un formato explícito para "Junio 10 de 2025".
-df['fecha_convertida'] = pd.to_datetime(df['fecha'], format='%B %d de %Y', errors='coerce')
+df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 
 # Asegurarse de que 'asesor' sea de tipo string para evitar errores en agrupaciones/filtros.
 if 'asesor' in df.columns:

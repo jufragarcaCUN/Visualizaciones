@@ -48,7 +48,7 @@ df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 
 # Asegurarse de que 'asesor' sea de tipo string para evitar errores en agrupaciones/filtros.
 if 'asesor' in df.columns:
-    df['asesor'] = df['asesor'].astype(str)
+    asesores = ["Todos"] + sorted(df["Agente"].dropna().unique())
 
 # ===================================================
 # PASO 4: Función para mostrar métricas resumen

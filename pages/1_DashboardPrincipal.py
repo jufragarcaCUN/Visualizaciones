@@ -6,7 +6,6 @@ from pathlib import Path
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-#import locale
 import datetime
 
 # ===================================================
@@ -26,9 +25,11 @@ except FileNotFoundError:
     st.error(f"Error: El archivo no se encontró en la ruta especificada: {archivo_principal}")
     st.stop()
 
+# Convertir fecha
 df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 
-if 'asesor' in df.columns:
+# Lista de asesores
+if 'Agente' in df.columns:
     asesores = ["Todos"] + sorted(df["Agente"].dropna().unique())
 
 # ===================================================
@@ -38,27 +39,28 @@ def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
     metrics_to_display_map = {
         "Puntaje promedio": "Puntaje_Total_%",
-        "Confianza promedio": "confianza",
-        "Polaridad promedio": "polarity",
-        "Subjetividad promedio": "subjectivity",
+        "Confianza promedio": "Confianza",
+        "Polaridad promedio": "Polarity",
+        "Subjetividad promedio": "Subjectivity",
     }
+
     for display_name, col_name in metrics_to_display_map.items():
         if col_name not in df_to_display.columns:
-            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos.")
+            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró.")
             return
 
     cols = st.columns(5)
     with cols[0]:
-        promedio_puntaje = df_to_display["Puntaje_Total_%"].mean()
+        promedio_puntaje = df_to_display["Puntaje_Total_%"].str.replace('%', '').astype(float).mean()
         st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")
     with cols[1]:
-        promedio_confianza = df_to_display["confianza"].mean() * 100
+        promedio_confianza = df_to_display["Confianza"].mean() * 100
         st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")
     with cols[2]:
-        promedio_polaridad = df_to_display["polarity"].mean() * 100
+        promedio_polaridad = df_to_display["Polarity"].mean() * 100
         st.metric("Polaridad promedio", f"{promedio_polaridad:.2f}%")
     with cols[3]:
-        promedio_subjetividad = df_to_display["subjectivity"].mean() * 100
+        promedio_subjetividad = df_to_display["Subjectivity"].mean() * 100
         st.metric("Subjetividad promedio", f"{promedio_subjetividad:.2f}%")
     with cols[4]:
         conteo_llamadas = len(df_to_display)
@@ -69,16 +71,19 @@ def display_summary_metrics(df_to_display):
 # ===================================================
 def main():
     st.sidebar.header("Filtros")
+
     asesores = ["Todos"] + sorted(df["Agente"].dropna().unique())
     asesor_seleccionado = st.sidebar.selectbox("👤 Selecciona un asesor", asesores)
     df_filtrado = df.copy()
     if asesor_seleccionado != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["asesor"] == asesor_seleccionado].copy()
+        df_filtrado = df_filtrado[df_filtrado["Agente"] == asesor_seleccionado].copy()
 
     st.sidebar.markdown("---")
+
     if 'fecha_convertida' in df_filtrado.columns:
         num_fechas_no_nulas = df_filtrado['fecha_convertida'].dropna().shape[0]
         st.sidebar.write(f"📊 Total registros con fecha_convertida: {num_fechas_no_nulas}")
+
         if not df_filtrado['fecha_convertida'].dropna().empty:
             fechas_validas = df_filtrado['fecha_convertida'].dropna().dt.date.unique()
             fechas_ordenadas = sorted(fechas_validas)
@@ -98,7 +103,7 @@ def main():
         st.sidebar.error("❌ La columna 'fecha_convertida' no existe en los datos.")
 
     st.sidebar.markdown("---")
-    st.title("📊 Dashboard de Análisis Cartera")
+    st.title("📊 Dashboard de Análisis de Conversaciones")
     if df_filtrado.empty:
         st.warning("🚨 No hay datos para mostrar con los filtros seleccionados.")
         return

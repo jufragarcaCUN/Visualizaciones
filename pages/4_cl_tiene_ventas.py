@@ -34,7 +34,7 @@ try:
     st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
 except FileNotFoundError:
     st.error(f"❌ Error: El archivo no se encontró en la ruta especificada: **{archivo_principal}**")
-    st.warning("Asegúrate de que el archivo 'final_servicio_cltiene.xlsx' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).")
+    st.warning(f"Asegúrate de que el archivo '{archivo_principal.name}' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).") # Mensaje de advertencia actualizado
     st.stop() # Detiene la ejecución de la aplicación si el archivo no se encuentra.
 except Exception as e:
     st.error(f"❌ Error al cargar el archivo Excel: {e}")
@@ -65,7 +65,7 @@ else:
 # --- INICIO DE CAMBIOS PARA SOLUCIONAR TypeError y manejo de porcentajes ---
 # Convertir columnas de métricas a numérico, forzando los errores a NaN
 # Esto es crucial para que las operaciones de promedio funcionen correctamente.
-# Nombres de columna actualizados: 'Polarity', 'Subjectivity', 'Confianza'
+# Nombres de columna actualizados: 'Polarity', 'Subjectivity', 'Confianza', etc.
 numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity', 'Palabras', 'Oraciones']
 for col in numeric_cols_to_convert:
     if col in df.columns:
@@ -90,7 +90,7 @@ def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
 
     # Define las métricas exactas que quieres mostrar y sus nombres de columna correspondientes
-    # NOMBRES DE COLUMNA: 'Polarity', 'Subjectivity', 'Confianza'
+    # Nombres de columna: 'Polarity', 'Subjectivity', 'Confianza'
     metrics_to_display_map = {
         "Puntaje promedio": "Puntaje_Total_%",
         "Confianza promedio": "Confianza",
@@ -103,7 +103,7 @@ def display_summary_metrics(df_to_display):
         if col_name is None: # Si ya se marcó como no disponible arriba
             continue
         if col_name not in df_to_display.columns:
-            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor,ifica el nombre de la columna.")
+            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor, verifica el nombre de la columna.")
             metrics_to_display_map[display_name] = None # Marcar como no disponible
             continue
         if df_to_display[col_name].isnull().all():
@@ -205,18 +205,18 @@ def graficar_puntaje_total(df_to_graph):
 def graficar_polaridad_asesor_total(df_to_graph):
     st.markdown("### 📊 Polaridad Promedio por Agente")
     # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # NOMBRES DE COLUMNA: 'Polarity'
+    # Nombres de columna: 'Polarity'
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polarity' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de polaridad por Agente. Asegúrate de tener las columnas 'Agente' y 'Polarity'.")
         return
     # Asegurarse de que la columna no esté vacía después de los filtros y sea numérica
-    # NOMBRES DE COLUMNA: 'Polarity'
+    # Nombres de columna: 'Polarity'
     if df_to_graph['Polarity'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
         st.warning("⚠️ La columna 'Polarity' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
         return
 
     # Calcular el promedio de 'Polarity' por 'Agente'.
-    # NOMBRES DE COLUMNA: 'Polarity'
+    # Nombres de columna: 'Polarity'
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
     if df_agrupado_por_agente.empty:
@@ -262,21 +262,22 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
         return
 
     # Definir **directamente** las columnas que deben estar en el heatmap (las de conteo)
+    # ¡NOMBRES DE COLUMNA DE CONTEO ACTUALIZADOS A LA ÚLTIMA LISTA PROPORCIONADA!
     metric_cols = [
-        "Conteo_saludo_inicial",
-        "Conteo_identificacion_cliente",
-        "Conteo_comprension_problema",
-        "Conteo_ofrecimiento_solucion",
-        "Conteo_manejo_inquietudes",
-        "Conteo_cierre_servicio",
-        "Conteo_proximo_paso"
+        "Conteo_apertura",
+        "Conteo_presentacion_beneficio",
+        "Conteo_creacion_necesidad",
+        "Conteo_manejo_objeciones",
+        "Conteo_cierre",
+        "Conteo_confirmacion_bienvenida",
+        "Conteo_consejos_cierre"
     ]
 
     # Filtrar solo las columnas que realmente existen en el DataFrame de entrada
     existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
 
     if not existing_metric_cols:
-        st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap en los datos. Asegúrate de que las columnas como 'Conteo_saludo_inicial' existan.")
+        st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap en los datos. Asegúrate de que las columnas como 'Conteo_apertura' existan.")
         return
 
     # Verificar que TODAS las columnas de conteo requeridas existan y no estén completamente nulas
@@ -332,7 +333,7 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
     # --- Gauge de Polaridad ---
     with col1:
         st.subheader("🔍 Polaridad Promedio General")
-        # NOMBRES DE COLUMNA: 'Polarity'
+        # Nombres de columna: 'Polarity'
         if 'Polarity' in df_to_graph.columns and not df_to_graph['Polarity'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
             polaridad_total = df_to_graph['Polarity'].mean()
 
@@ -369,7 +370,7 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
     # --- Gauge de Subjetividad ---
     with col2:
         st.subheader("🔍 Subjectividad Promedio General")
-        # NOMBRES DE COLUMNA: 'Subjectivity'
+        # Nombres de columna: 'Subjectivity'
         if 'Subjectivity' in df_to_graph.columns and not df_to_graph['Subjectivity'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Subjectivity']):
             subjectividad_total = df_to_graph['Subjectivity'].mean()
 
@@ -409,7 +410,7 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
 def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
     st.markdown("### 📈 Polaridad Promedio vs. Confianza Promedio por Agente")
     # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # NOMBRES DE COLUMNA: 'Polarity', 'Subjectivity', 'Confianza'
+    # Nombres de columna: 'Polarity', 'Subjectivity', 'Confianza'
     if df_to_graph is None or df_to_graph.empty or \
        'Agente' not in df_to_graph.columns or \
        'Polarity' not in df_to_graph.columns or \
@@ -417,7 +418,7 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
         st.warning("⚠️ Datos incompletos para la gráfica de burbujas. Asegúrate de tener las columnas 'Agente', 'Polarity' y 'Confianza'.")
         return
     # Asegurarse de que las columnas no estén vacías después de los filtros y sean numéricas
-    # NOMBRES DE COLUMNA: 'Polarity', 'Subjectivity', 'Confianza'
+    # Nombres de columna: 'Polarity', 'Subjectivity', 'Confianza'
     if df_to_graph['Polarity'].isnull().all() or df_to_graph['Confianza'].isnull().all() or \
        not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']) or \
        not pd.api.types.is_numeric_dtype(df_to_graph['Confianza']):
@@ -427,7 +428,7 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
 
     # 1. Agrupar por 'Agente' y calcular promedios de polaridad y confianza
     # 2. Contar el número de registros/llamadas por Agente
-    # NOMBRES DE COLUMNA: 'Polarity'
+    # Nombres de columna: 'Polarity'
     df_agrupado_por_agente = df_to_graph.groupby('Agente').agg(
         promedio_polaridad=('Polarity', 'mean'),
         promedio_confianza=('Confianza', 'mean'),
@@ -444,7 +445,7 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
         x="promedio_polaridad",
         y="promedio_confianza",
         size="numero_llamadas", # El tamaño de la burbuja representa el número de llamadas
-        # YA NO USAMOS 'color="Agente"' AQUÍ PARA UN SOLO COLOR UNIFORME
+        # Ya no usamos 'color="Agente"' aquí para un solo color uniforme
         # Eliminamos 'color_continuous_scale' también, ya que no estamos usando una escala continua
         hover_name="Agente",
         hover_data={
@@ -500,28 +501,29 @@ def mostrar_acordeones(df_to_display):
 
     # Columnas a excluir, ajustadas a los nombres exactos de tu DataFrame
     cols_to_exclude_from_accordion = [
-        "Identificador único", # Nombre de tu columna
-        "Telefono",           # Nombre de tu columna
-        "Puntaje_Total_%",    # Nombre de tu columna
-        "Polarity",           # Nombre de tu columna
-        "Subjectivity",       # Nombre de tu columna
-        "Confianza",          # Nombre de tu columna
-        "Palabras",           # Nombre de tu columna
-        "Oraciones",          # Nombre de tu columna
-        "asesor_corto",       # Si esta columna existe en tu Excel, la excluirá. Si no, no pasa nada.
-        "fecha_convertida",   # Columna generada por el script
-        "NombreAudios",       # Columna de tu Excel
-        "NombreAudios_Normalizado", # Columna normalizada de tu Excel
-        "Coincidencia_Excel", # Columna generada por el script de análisis
-        "Archivo_Vacio",      # Columna generada
-        "Estado_Llamada",     # Columna generada
-        "Sentimiento",        # Columna generada
-        "Direccion grabacion", # Otros del excel que quieres excluir
+        "Identificador único",
+        "Telefono",
+        "Puntaje_Total_%",
+        "Polarity",
+        "Subjectivity",
+        "Confianza",
+        "Palabras",
+        "Oraciones",
+        "asesor_corto", # Se mantiene si existe, si no, no genera error
+        "fecha_convertida",
+        "NombreAudios",
+        "NombreAudios_Normalizado",
+        "Coincidencia_Excel",
+        "Archivo_Vacio",
+        "Estado_Llamada",
+        "Sentimiento",
+        "Direccion grabacion",
         "Evento",
         "Nombre de Opción",
         "Codigo Entrante",
         "Troncal",
         "Grupo de Colas",
+        "Cola", # ¡Esta columna está en tu lista!
         "Contacto",
         "Identificacion",
         "Tiempo de Espera",
@@ -529,7 +531,7 @@ def mostrar_acordeones(df_to_display):
         "Posicion de Entrada",
         "Tiempo de Timbrado",
         "Comentario",
-        "audio" # La columna original de audio
+        "audio"
     ]
 
     for nombre_agente in unique_agentes:
@@ -557,10 +559,11 @@ def mostrar_acordeones(df_to_display):
 
                     cumple = '❌'
                     if isinstance(valor, (int, float)):
-                        # NOMBRES DE COLUMNA: 'Puntaje_Total_%', 'Conteo_...'
+                        # Nombres de columna: 'Puntaje_Total_%', 'Conteo_...'
                         if 'Puntaje_Total_%' in col: # La columna de puntaje total
                             cumple = '✅' if valor >= 80 else '❌'
-                        elif 'Conteo_' in col: # Todas las columnas de conteo que empiezan con 'Conteo_'
+                        # ¡CORRECCIÓN AQUÍ! Se mantiene la lógica 'Conteo_' ya que tus nuevas columnas de conteo la usan
+                        elif 'Conteo_' in col:
                             cumple = '✅' if valor >= 1 else '❌'
                         else: # Para otras métricas numéricas que simplemente existen (Polarity, Subjectivity, Confianza, Palabras, Oraciones)
                             cumple = '✅'

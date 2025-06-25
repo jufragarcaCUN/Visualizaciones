@@ -29,6 +29,11 @@ except FileNotFoundError:
     st.error(f"Error: El archivo no se encontró en la ruta especificada: {archivo_principal}")
     st.stop() # Detiene la ejecución de la aplicación si el archivo no se encuentra.
 
+# --- LÍNEA AÑADIDA PARA DEPURACIÓN ---
+# Imprime todas las columnas del DataFrame recién cargado para verificar los nombres exactos.
+print("Columnas en el DataFrame después de la carga:", df.columns)
+# -----------------------------------
+
 # Configurar la configuración regional a español para el formato de fechas.
 # Esto es crucial para que `pd.to_datetime` pueda interpretar nombres de meses en español.
 #try:
@@ -155,7 +160,6 @@ def graficar_polaridad_asesor_total(df_to_graph):
     # Calcular el promedio de 'Polarity' por 'Agente'.
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
-    # Verificar si el DataFrame agrupado está vacío
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio de polaridad por Agente después de agrupar. Revisa tus filtros.")
         return
@@ -485,7 +489,7 @@ def main():
 
             fecha_seleccionada = st.sidebar.selectbox("📅 **Filtrar por fecha exacta**", opciones_fechas)
 
-            if fecha_seleccionada != "Todas":
+            if fecha_seleccionada != "Todos":
                 try:
                     fecha_filtrada_dt = pd.to_datetime(fecha_seleccionada).date()
                     # Aquí se aplica el filtro de fecha final
@@ -541,4 +545,3 @@ def main():
 # ===================================================
 if __name__ == '__main__':
     main()
-

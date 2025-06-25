@@ -444,9 +444,8 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
         x="promedio_polaridad",
         y="promedio_confianza",
         size="numero_llamadas", # El tamaño de la burbuja representa el número de llamadas
-        color="Agente", # Usar 'Agente' para que cada agente tenga un color diferente
-        # >>> ¡CORRECCIÓN AQUÍ! Eliminada la línea 'color_continuous_scale' para usar colores discretos por agente
-        # color_continuous_scale="Greens",
+        color="Agente", # Esto coloreará por agente
+        color_continuous_scale="Greens", # <<-- ¡RESTAURADO! Esto fuerza que los colores sean verdes
         hover_name="Agente",
         hover_data={
             "promedio_polaridad": ":.2f",
@@ -473,7 +472,7 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
     st.plotly_chart(fig, use_container_width=True)
 
 # ===================================================
-# PASO 9: Función para mostrar acordeones por Agente (originalmente 'asesor')
+# PASO 9: Función para mostrar acordeones por Agente
 # ===================================================
 def mostrar_acordeones(df_to_display):
     st.markdown("### 🔍 Detalle Completo por Agente") # Título ajustado a 'Agente'
@@ -481,37 +480,37 @@ def mostrar_acordeones(df_to_display):
         st.warning("⚠️ El DataFrame está vacío o no fue cargado correctamente.")
         return
     # COLUMNA: 'Agente'
-    if 'Agente' not in df_to_display.columns: # Cambiado de 'asesor' a 'Agente'
-        st.error("❌ El DataFrame no contiene la columna 'Agente'.") # Cambiado de 'asesor' a 'Agente'
+    if 'Agente' not in df_to_display.columns:
+        st.error("❌ El DataFrame no contiene la columna 'Agente'.")
         return
 
     # Asegurar que la columna 'Agente' sea de tipo string.
-    df_to_display['Agente'] = df_to_display['Agente'].astype(str) # Cambiado de 'asesor' a 'Agente'
-    unique_agentes = df_to_display['Agente'].dropna().unique() # Cambiado de 'asesor' a 'Agente'
+    df_to_display['Agente'] = df_to_display['Agente'].astype(str)
+    unique_agentes = df_to_display['Agente'].dropna().unique()
 
     if unique_agentes.size == 0:
         st.info("No hay agentes disponibles para mostrar en los acordeones con los filtros actuales.")
         return
 
-    # Columnas a excluir, ajustadas a los nombres de tu DataFrame
+    # Columnas a excluir, ajustadas a los nombres exactos de tu DataFrame
     cols_to_exclude_from_accordion = [
-        "Identificador único", # Asumo que este es 'id_'
-        "Telefono",           # Asumo que este es 'celular'
-        "Puntaje_Total_%",    # Asumo que este es 'puntaje'
-        "Polarity",           # Asumo que este es 'polarity'
-        "Subjectivity",       # Asumo que este es 'subjectivity'
-        "Confianza",          # Asumo que este es 'confianza'
-        "Palabras",           # Asumo que este es 'palabras'
-        "Oraciones",          # Asumo que este es 'oraciones'
-        "asesor_corto",       # Se mantiene si existe como temporal, si no, se puede quitar
-        "fecha_convertida",   # Columna generada
+        "Identificador único", # Nombre de tu columna
+        "Telefono",           # Nombre de tu columna
+        "Puntaje_Total_%",    # Nombre de tu columna
+        "Polarity",           # Nombre de tu columna
+        "Subjectivity",       # Nombre de tu columna
+        "Confianza",          # Nombre de tu columna
+        "Palabras",           # Nombre de tu columna
+        "Oraciones",          # Nombre de tu columna
+        "asesor_corto",       # Si esta columna existe en tu Excel, la excluirá. Si no, no pasa nada.
+        "fecha_convertida",   # Columna generada por el script
         "NombreAudios",       # Columna de tu Excel
         "NombreAudios_Normalizado", # Columna normalizada de tu Excel
         "Coincidencia_Excel", # Columna generada por el script de análisis
         "Archivo_Vacio",      # Columna generada
         "Estado_Llamada",     # Columna generada
         "Sentimiento",        # Columna generada
-        "Direccion grabacion", # Otros del excel
+        "Direccion grabacion", # Otros del excel que quieres excluir
         "Evento",
         "Nombre de Opción",
         "Codigo Entrante",
@@ -527,16 +526,16 @@ def mostrar_acordeones(df_to_display):
         "audio" # La columna original de audio
     ]
 
-    for nombre_agente in unique_agentes: # Cambiado de 'nombre_asesor' a 'nombre_agente'
-        df_agente = df_to_display[df_to_display['Agente'] == nombre_agente] # Cambiado de 'asesor' a 'Agente'
+    for nombre_agente in unique_agentes:
+        df_agente = df_to_display[df_to_display['Agente'] == nombre_agente]
 
         if df_agente.empty:
             continue
 
-        with st.expander(f"🧑 Detalle de: **{nombre_agente}** ({len(df_agente)} registros)"): # Cambiado de 'nombre_asesor' a 'nombre_agente'
+        with st.expander(f"🧑 Detalle de: **{nombre_agente}** ({len(df_agente)} registros)"):
             for index, row in df_agente.iterrows():
-                # COLUMNA: 'Archivo_Analizado'
-                archivo = row.get("Archivo_Analizado", "Archivo desconocido") # Cambiado de 'archivo' a 'Archivo_Analizado'
+                # COLUMNA: 'Archivo_Analizado' (asumo que esta columna existe en tu Excel final)
+                archivo = row.get("Archivo_Analizado", "Archivo desconocido")
                 st.write(f"📄 Analizando: **{archivo}**")
 
                 for col in df_agente.columns: # Iterar sobre las columnas del sub-DataFrame del agente
@@ -567,103 +566,119 @@ def mostrar_acordeones(df_to_display):
                     st.write(f"🔹 {col.replace('_', ' ').capitalize()}: {valor} {cumple}")
 
                 # Línea divisoria entre cada registro de llamada dentro del acordeón de un agente
-                if len(df_agente) > 1 and index < df_agente.index[-1]: # Último índice del df_agente
+                # Asegurarse de que no sea la última fila del grupo para no poner un separador al final
+                if len(df_agente) > 1 and index != df_agente.index[-1]:
                     st.markdown("---")
 
 # ===================================================
-# PASO 10: Función principal de la aplicación (main)
+# PASES 10: Lógica principal de la aplicación (main)
 # ===================================================
 def main():
-    st.sidebar.header("Filtros")
+    st.sidebar.header("Filtros de Datos")
+
+    # --- FILTRO POR FECHA ---
+    # Asegúrate de que 'Fecha' exista y tenga datos válidos antes de intentar crear el filtro de fechas.
+    if 'Fecha' in df.columns and not df['Fecha'].isnull().all():
+        # Convertir a fecha directamente para el rango min/max de la UI
+        temp_fecha_convertida_para_filtro = pd.to_datetime(df['Fecha'], errors='coerce').dropna()
+
+        if not temp_fecha_convertida_para_filtro.empty:
+            min_date = temp_fecha_convertida_para_filtro.min().date()
+            max_date = temp_fecha_convertida_para_filtro.max().date()
+
+            date_range = st.sidebar.date_input(
+                "Selecciona rango de fechas:",
+                value=(min_date, max_date),
+                min_value=min_date,
+                max_value=max_date
+            )
+
+            df_filtrado_fecha = df.copy() # Start with a copy
+            # Asegurarse de que date_range sea una tupla de dos elementos para el filtro
+            if len(date_range) == 2:
+                start_date, end_date = date_range
+                df_filtrado_fecha = df_filtrado_fecha[
+                    (df_filtrado_fecha['fecha_convertida'].dt.date >= start_date) &
+                    (df_filtrado_fecha['fecha_convertida'].dt.date <= end_date)
+                ].copy() # Asegurar copia después del filtro
+            elif len(date_range) == 1: # Si solo se selecciona una fecha
+                start_date = date_range[0]
+                df_filtrado_fecha = df_filtrado_fecha[
+                    (df_filtrado_fecha['fecha_convertida'].dt.date >= start_date)
+                ].copy() # Asegurar copia
+            else: # Si no se selecciona nada, usar el DataFrame completo (ya es una copia)
+                pass
+        else:
+            st.sidebar.warning("⚠️ No hay fechas válidas en los datos para mostrar el filtro de fecha.")
+            df_filtrado_fecha = df.copy() # Si no hay fechas válidas, no se filtra por fecha
+    else:
+        st.sidebar.warning("❌ La columna 'Fecha' no existe o está vacía. No se podrá filtrar por fecha.")
+        df_filtrado_fecha = df.copy() # Si no hay columna 'Fecha', se pasa el DF completo
+
+    st.sidebar.markdown("---") # Separador visual para el filtro de agente
 
     # --- FILTRO POR AGENTE ---
     # Verificar si 'Agente' existe y no está completamente vacío antes de intentar obtener únicos.
-    if 'Agente' in df.columns and not df['Agente'].dropna().empty:
+    if 'Agente' in df_filtrado_fecha.columns and not df_filtrado_fecha['Agente'].dropna().empty:
         # Asegurarse de que la columna 'Agente' sea de tipo string antes de obtener únicos
-        df['Agente'] = df['Agente'].astype(str)
-        asesores = ["Todos"] + sorted(df["Agente"].dropna().unique())
-    else:
-        asesores = ["Todos"] # Si no hay datos de Agente, solo ofrecer 'Todos'
-        st.sidebar.warning("⚠️ No se encontraron agentes en los datos. El filtro de Agente estará limitado.")
-
-    asesor_seleccionado = st.sidebar.selectbox("👤 Selecciona un Agente", asesores)
-
-    df_filtrado = df.copy() # Siempre empezamos con una copia del DF original
-
-    if asesor_seleccionado != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["Agente"] == asesor_seleccionado].copy()
-
-    # --- FILTRO POR FECHA ---
-    st.sidebar.markdown("---") # Separador visual para el filtro de fecha
-
-    if 'Fecha' in df.columns and not df['Fecha'].isnull().all().any(): # Added .any() for robustness
-        # Convertir a fecha directamente para el rango min/max si no hay 'fecha_convertida' aún.
-        # Asegúrate de que esta conversión sea robusta si 'Fecha' tiene formatos mixtos.
-        temp_fecha_convertida = pd.to_datetime(df['Fecha'], errors='coerce')
-        min_date = temp_fecha_convertida.min().date()
-        max_date = temp_fecha_convertida.max().date()
-
-        date_range = st.sidebar.date_input(
-            "Selecciona rango de fechas:",
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date
+        df_filtrado_fecha['Agente'] = df_filtrado_fecha['Agente'].astype(str)
+        all_agents = sorted(df_filtrado_fecha['Agente'].dropna().unique().tolist())
+        selected_agents = st.sidebar.multiselect(
+            "👤 Selecciona Agentes:",
+            options=all_agents,
+            default=all_agents # Selecciona todos por defecto
         )
-        # Asegurarse de que date_range sea una tupla de dos elementos
-        if len(date_range) == 2:
-            start_date, end_date = date_range
-            df_filtrado = df_filtrado[
-                (df_filtrado['fecha_convertida'].dt.date >= start_date) &
-                (df_filtrado['fecha_convertida'].dt.date <= end_date)
-            ].copy() # Asegurar copia
-        elif len(date_range) == 1: # Si solo se selecciona una fecha
-            start_date = date_range[0]
-            df_filtrado = df_filtrado[
-                (df_filtrado['fecha_convertida'].dt.date >= start_date)
-            ].copy() # Asegurar copia
-        else: # Si no se selecciona nada o hay un problema, usar el DataFrame original
-            pass # df_filtrado ya es una copia de df
+        # Aplicar filtro de agente
+        if selected_agents:
+            df_final_filtered = df_filtrado_fecha[df_filtrado_fecha['Agente'].isin(selected_agents)].copy()
+        else:
+            st.warning("Por favor, selecciona al menos un agente para ver los datos.")
+            df_final_filtered = pd.DataFrame() # DataFrame vacío si no hay agentes seleccionados
     else:
-        st.sidebar.warning("No se pudo aplicar filtro por fecha: la columna 'Fecha' no existe o está vacía.")
-        # df_filtrado ya es una copia de df o ya está filtrado por agente.
+        st.sidebar.warning("❌ La columna 'Agente' no existe o está vacía en los datos filtrados por fecha. No se podrá filtrar por Agente.")
+        df_final_filtered = df_filtrado_fecha.copy() # Continúa con el DataFrame filtrado por fecha si no hay columna de agente
 
     st.sidebar.markdown("---") # Separador final para los filtros
 
 
-    # El resto de tu código para mostrar métricas y gráficos permanece igual
-    st.title("📊 Dashboard de Análisis de Interacciones")
+    # ===================================================
+    # PASO 11: Mostrar gráficos y métricas
+    # ===================================================
 
-    if df_filtrado.empty:
+    st.title("📊 Dashboard de Análisis de Interacciones")
+    st.markdown("Bienvenido al dashboard de análisis de interacciones con clientes. Utiliza los filtros para explorar los datos.")
+
+    if df_final_filtered.empty:
         st.warning("🚨 ¡Atención! No hay datos para mostrar con los filtros seleccionados. Ajusta tus selecciones.")
         return
 
-    display_summary_metrics(df_filtrado)
+    # Muestra las métricas resumen
+    display_summary_metrics(df_final_filtered)
     st.markdown("---")
 
     st.header("📈 Gráficos Resumen")
 
-    graficar_puntaje_total(df_filtrado)
+    graficar_puntaje_total(df_final_filtered)
     st.markdown("---")
 
-    graficar_polaridad_asesor_total(df_filtrado)
+    graficar_polaridad_asesor_total(df_final_filtered)
     st.markdown("---")
 
-    graficar_asesores_metricas_heatmap(df_filtrado)
+    graficar_asesores_metricas_heatmap(df_final_filtered)
     st.markdown("---")
 
-    graficar_polaridad_subjetividad_gauges(df_filtrado)
+    graficar_polaridad_subjetividad_gauges(df_final_filtered)
     st.markdown("---")
 
-    graficar_polaridad_confianza_asesor_burbujas(df_filtrado)
+    graficar_polaridad_confianza_asesor_burbujas(df_final_filtered)
     st.markdown("---")
 
-    # ¡LA FUNCIÓN mostrar_acordeones ESTÁ DE VUELTA AQUÍ!
-    mostrar_acordeones(df_filtrado)
+    # ¡La función mostrar_acordeones está de vuelta aquí, con las columnas corregidas!
+    mostrar_acordeones(df_final_filtered)
     st.markdown("---") # Añadir un separador final para el acordeón
 
-
 # ===================================================
-# PASO 11: Punto de entrada de la app
+# PASO 12: Punto de entrada de la app
 # ===================================================
 if __name__ == '__main__':
     main()

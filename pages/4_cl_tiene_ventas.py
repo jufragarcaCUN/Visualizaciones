@@ -103,7 +103,7 @@ def display_summary_metrics(df_to_display):
         if col_name is None: # Si ya se marcó como no disponible arriba
             continue
         if col_name not in df_to_display.columns:
-            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor, verifica el nombre de la columna.")
+            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor,ifica el nombre de la columna.")
             metrics_to_display_map[display_name] = None # Marcar como no disponible
             continue
         if df_to_display[col_name].isnull().all():
@@ -444,8 +444,8 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
         x="promedio_polaridad",
         y="promedio_confianza",
         size="numero_llamadas", # El tamaño de la burbuja representa el número de llamadas
-        color="Agente", # Esto coloreará por agente
-        color_continuous_scale="Greens", # <<-- ¡RESTAURADO! Esto fuerza que los colores sean verdes
+        # YA NO USAMOS 'color="Agente"' AQUÍ PARA UN SOLO COLOR UNIFORME
+        # Eliminamos 'color_continuous_scale' también, ya que no estamos usando una escala continua
         hover_name="Agente",
         hover_data={
             "promedio_polaridad": ":.2f",
@@ -460,7 +460,13 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
         }
     )
 
-    fig.update_traces(marker=dict(line=dict(width=1, color='DarkSlateGrey')))
+    # >>> ¡CORRECCIÓN CLAVE AQUÍ! <<<
+    # Establecer el color de las burbujas a un verde sólido y uniforme para TODAS.
+    fig.update_traces(marker=dict(color='green', line=dict(width=1, color='DarkSlateGrey')))
+    # Puedes usar un código hexadecimal específico si quieres un tono exacto de verde, por ejemplo:
+    # fig.update_traces(marker=dict(color='#31a354', line=dict(width=1, color='DarkSlateGrey')))
+
+
     fig.update_layout(
         xaxis_title="Polaridad Promedio",
         yaxis_title="Confianza Promedio (%)",
@@ -571,7 +577,7 @@ def mostrar_acordeones(df_to_display):
                     st.markdown("---")
 
 # ===================================================
-# PASES 10: Lógica principal de la aplicación (main)
+# PASO 10: Lógica principal de la aplicación (main)
 # ===================================================
 def main():
     st.sidebar.header("Filtros de Datos")

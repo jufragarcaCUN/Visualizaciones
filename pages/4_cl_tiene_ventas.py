@@ -25,7 +25,7 @@ st.set_page_config(layout="wide")
 carpeta_base = Path(__file__).parent.parent / "data"
 
 # Construir la ruta completa al archivo Excel principal.
-archivo_principal = carpeta_base / "Mi_DataFrame_Completo.xlsx"
+archivo_principal = carpeta_base / "final_servicio_cltiene.xlsx"
 
 # Cargar el archivo Excel en un DataFrame de pandas.
 try:

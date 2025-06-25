@@ -217,25 +217,36 @@ def graficar_polaridad_asesor_total(df_to_graph):
 # PASO 6: Función para heatmap de métricas por Agente
 # ===================================================
 def graficar_asesores_metricas_heatmap(df_to_graph):
-    # Nombres de columnas actualizados
+    # Verificar que el DataFrame no esté vacío y que contenga la columna 'Agente'
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
         st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
         return
 
-    numeric_cols = df_to_graph.select_dtypes(include=['number']).columns.tolist()
-
-    # Columnas a excluir, con nombres actualizados
-    cols_to_exclude = [
-        "Identificador único", "Telefono", "Puntaje_Total_%", "Polarity",
-        "Subjectivity", "Confianza", "Palabras", "Oraciones", "asesor_corto" # 'asesor_corto' se mantiene si es una columna temporal.
+    # Definir **directamente** las columnas que deben estar en el heatmap (las de conteo)
+    metric_cols = [
+        "Conteo_saludo_inicial",
+        "Conteo_identificacion_cliente",
+        "Conteo_comprension_problema",
+        "Conteo_ofrecimiento_solucion",
+        "Conteo_manejo_inquietudes",
+        "Conteo_cierre_servicio",
+        "Conteo_proximo_paso"
     ]
-    metric_cols = [col for col in numeric_cols if col not in cols_to_exclude]
 
-    if not metric_cols:
-        st.warning("No se encontraron columnas numéricas adecuadas para el Heatmap después de aplicar los filtros.")
-        return
+    # Verificar que TODAS las columnas de conteo requeridas existan y no estén completamente nulas
+    # Es crucial que estas columnas se hayan convertido a tipo numérico en el PASO 3.
+    for col in metric_cols:
+        if col not in df_to_graph.columns:
+            st.warning(f"⚠️ La columna '{col}' necesaria para el Heatmap no se encontró en los datos. Por favor, verifica el nombre de la columna.")
+            return # Detiene la función si una columna esencial no existe.
+        if df_to_graph[col].isnull().all():
+            st.warning(f"⚠️ La columna '{col}' para el Heatmap contiene solo valores nulos después de aplicar los filtros. No se puede graficar el promedio para esta columna.")
+            # Puedes decidir si quieres omitir esta columna o detener la función.
+            # Aquí, si una de las columnas *esenciales* está completamente nula, detiene la función.
+            return
 
-    # Usar 'Agente' para la agrupación.
+
+    # Usar 'Agente' para la agrupación y CALCULAR EL PROMEDIO de las métricas de conteo.
     df_grouped = df_to_graph.groupby('Agente')[metric_cols].mean().reset_index()
 
     if df_grouped.empty:
@@ -246,10 +257,10 @@ def graficar_asesores_metricas_heatmap(df_to_graph):
 
     fig2 = px.imshow(
         df_heatmap,
-        labels=dict(x="Métrica", y="Agente", color="Valor"), # Etiqueta y actualizada
+        labels=dict(x="Métrica", y="Agente", color="Valor promedio"), # Etiqueta y actualizada para indicar promedio
         color_continuous_scale='Greens',
         aspect="auto",
-        title="Heatmap: Agente vs. Métricas (Promedio)"
+        title="Heatmap: Agente vs. Métricas de Conteo (Promedio)" # Título actualizado
     )
     fig2.update_layout(
         font=dict(family="Arial", size=12),

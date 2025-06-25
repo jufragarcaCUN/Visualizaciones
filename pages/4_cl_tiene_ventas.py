@@ -25,6 +25,7 @@ st.set_page_config(layout="wide")
 carpeta_base = Path(__file__).parent.parent / "data"
 
 # Construir la ruta completa al archivo Excel principal.
+# Asegúrate de que el nombre del archivo sea el correcto que genera tu script de análisis.
 archivo_principal = carpeta_base / "final_servicio_cltiene.xlsx"
 
 # Cargar el archivo Excel en un DataFrame de pandas.
@@ -33,7 +34,7 @@ try:
     st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
 except FileNotFoundError:
     st.error(f"❌ Error: El archivo no se encontró en la ruta especificada: **{archivo_principal}**")
-    st.warning("Asegúrate de que el archivo 'Mi_DataFrame_Completo.xlsx' esté en la carpeta 'data' (relativa a la ubicación de tu script).")
+    st.warning("Asegúrate de que el archivo 'final_servicio_cltiene.xlsx' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).")
     st.stop() # Detiene la ejecución de la aplicación si el archivo no se encuentra.
 except Exception as e:
     st.error(f"❌ Error al cargar el archivo Excel: {e}")
@@ -47,7 +48,6 @@ print("Columnas en el DataFrame después de la carga:", df.columns.tolist())
 # -----------------------------------
 
 # Convertir la columna 'Fecha' a formato de fecha y hora, manejando errores.
-# Se asume que la columna ahora se llama 'Fecha' (con F mayúscula).
 if 'Fecha' in df.columns:
     df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
     # Aviso si hay muchas fechas nulas después de la conversión
@@ -57,7 +57,6 @@ else:
     st.error("❌ La columna 'Fecha' no se encontró en el DataFrame. No se podrá filtrar por fecha.")
 
 # Asegurarse de que 'Agente' sea de tipo string para evitar errores en agrupaciones/filtros.
-# Se asume que la columna ahora se llama 'Agente'
 if 'Agente' in df.columns:
     df['Agente'] = df['Agente'].astype(str)
 else:
@@ -66,8 +65,8 @@ else:
 # --- INICIO DE CAMBIOS PARA SOLUCIONAR TypeError y manejo de porcentajes ---
 # Convertir columnas de métricas a numérico, forzando los errores a NaN
 # Esto es crucial para que las operaciones de promedio funcionen correctamente.
-# ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad' y 'Subjetividad'
-numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polaridad', 'Subjetividad', 'Palabras', 'Oraciones']
+# ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity' y 'Subjectivity'
+numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity', 'Palabras', 'Oraciones']
 for col in numeric_cols_to_convert:
     if col in df.columns:
         # Si es la columna de puntaje y contiene el símbolo %, lo eliminamos primero.
@@ -91,12 +90,12 @@ def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
 
     # Define las métricas exactas que quieres mostrar y sus nombres de columna correspondientes
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad' y 'Subjetividad'
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity' y 'Subjectivity'
     metrics_to_display_map = {
         "Puntaje promedio": "Puntaje_Total_%",
         "Confianza promedio": "Confianza",
-        "Polaridad promedio": "Polaridad", # Cambiado de 'Polarity' a 'Polaridad'
-        "Subjetividad promedio": "Subjetividad", # Cambiado de 'Subjectivity' a 'Subjetividad'
+        "Polaridad promedio": "Polarity", # Cambiado de 'Polaridad' a 'Polarity'
+        "Subjetividad promedio": "Subjectivity", # Cambiado de 'Subjetividad' a 'Subjectivity'
     }
 
     # Verifica si el DataFrame contiene todas las columnas necesarias y si son numéricas
@@ -206,19 +205,19 @@ def graficar_puntaje_total(df_to_graph):
 def graficar_polaridad_asesor_total(df_to_graph):
     st.markdown("### 📊 Polaridad Promedio por Agente")
     # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
-    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polaridad' not in df_to_graph.columns:
-        st.warning("⚠️ Datos incompletos para la gráfica de polaridad por Agente. Asegúrate de tener las columnas 'Agente' y 'Polaridad'.")
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
+    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polarity' not in df_to_graph.columns:
+        st.warning("⚠️ Datos incompletos para la gráfica de polaridad por Agente. Asegúrate de tener las columnas 'Agente' y 'Polarity'.")
         return
     # Asegurarse de que la columna no esté vacía después de los filtros y sea numérica
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
-    if df_to_graph['Polaridad'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Polaridad']):
-        st.warning("⚠️ La columna 'Polaridad' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
+    if df_to_graph['Polarity'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
+        st.warning("⚠️ La columna 'Polarity' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
         return
 
-    # Calcular el promedio de 'Polaridad' por 'Agente'.
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
-    df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polaridad'].mean().reset_index()
+    # Calcular el promedio de 'Polarity' por 'Agente'.
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
+    df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio de polaridad por Agente después de agrupar. Revisa tus filtros.")
@@ -226,14 +225,14 @@ def graficar_polaridad_asesor_total(df_to_graph):
 
     # Crear gráfico de barras
     fig = px.bar(
-        df_agrupado_por_agente.sort_values("Polaridad", ascending=False),
+        df_agrupado_por_agente.sort_values("Polarity", ascending=False),
         x="Agente",
-        y="Polaridad",
-        text="Polaridad",
-        color="Polaridad",
+        y="Polarity",
+        text="Polarity",
+        color="Polarity",
         color_continuous_scale="Greens", # La escala de color para el gráfico será verde
         title="Polaridad Promedio por Agente",
-        labels={"Polaridad": "Promedio de Polaridad", "Agente": "Agente"}
+        labels={"Polarity": "Promedio de Polaridad", "Agente": "Agente"}
     )
 
     # Formatear el texto y ajustar diseño
@@ -333,9 +332,9 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
     # --- Gauge de Polaridad ---
     with col1:
         st.subheader("🔍 Polaridad Promedio General")
-        # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
-        if 'Polaridad' in df_to_graph.columns and not df_to_graph['Polaridad'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Polaridad']):
-            polaridad_total = df_to_graph['Polaridad'].mean()
+        # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
+        if 'Polarity' in df_to_graph.columns and not df_to_graph['Polarity'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
+            polaridad_total = df_to_graph['Polarity'].mean()
 
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number+delta",
@@ -365,14 +364,14 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
             )
             st.plotly_chart(fig_gauge, use_container_width=False)
         else:
-            st.info("No hay datos de 'Polaridad' para mostrar el indicador de Polaridad o la columna no es numérica.")
+            st.info("No hay datos de 'Polarity' para mostrar el indicador de Polaridad o la columna no es numérica.")
 
     # --- Gauge de Subjetividad ---
     with col2:
         st.subheader("🔍 Subjectividad Promedio General")
-        # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Subjetividad'
-        if 'Subjetividad' in df_to_graph.columns and not df_to_graph['Subjetividad'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Subjetividad']):
-            subjectividad_total = df_to_graph['Subjetividad'].mean()
+        # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Subjectivity'
+        if 'Subjectivity' in df_to_graph.columns and not df_to_graph['Subjectivity'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Subjectivity']):
+            subjectividad_total = df_to_graph['Subjectivity'].mean()
 
             fig_gauge2 = go.Figure(go.Indicator(
                 mode="gauge+number+delta",
@@ -402,7 +401,7 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
             )
             st.plotly_chart(fig_gauge2, use_container_width=False)
         else:
-            st.info("No hay datos de 'Subjetividad' para mostrar el indicador de Subjetividad o la columna no es numérica.")
+            st.info("No hay datos de 'Subjectivity' para mostrar el indicador de Subjetividad o la columna no es numérica.")
 
 # ===================================================
 # PASO 8: Función para mostrar burbujas
@@ -410,27 +409,27 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
 def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
     st.markdown("### 📈 Polaridad Promedio vs. Confianza Promedio por Agente")
     # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
     if df_to_graph is None or df_to_graph.empty or \
        'Agente' not in df_to_graph.columns or \
-       'Polaridad' not in df_to_graph.columns or \
+       'Polarity' not in df_to_graph.columns or \
        'Confianza' not in df_to_graph.columns:
-        st.warning("⚠️ Datos incompletos para la gráfica de burbujas. Asegúrate de tener las columnas 'Agente', 'Polaridad' y 'Confianza'.")
+        st.warning("⚠️ Datos incompletos para la gráfica de burbujas. Asegúrate de tener las columnas 'Agente', 'Polarity' y 'Confianza'.")
         return
     # Asegurarse de que las columnas no estén vacías después de los filtros y sean numéricas
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
-    if df_to_graph['Polaridad'].isnull().all() or df_to_graph['Confianza'].isnull().all() or \
-       not pd.api.types.is_numeric_dtype(df_to_graph['Polaridad']) or \
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
+    if df_to_graph['Polarity'].isnull().all() or df_to_graph['Confianza'].isnull().all() or \
+       not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']) or \
        not pd.api.types.is_numeric_dtype(df_to_graph['Confianza']):
-        st.warning("⚠️ Las columnas 'Polaridad' o 'Confianza' contienen solo valores nulos o no son numéricas después de aplicar los filtros. No se puede graficar el promedio.")
+        st.warning("⚠️ Las columnas 'Polarity' o 'Confianza' contienen solo valores nulos o no son numéricas después de aplicar los filtros. No se puede graficar el promedio.")
         return
 
 
     # 1. Agrupar por 'Agente' y calcular promedios de polaridad y confianza
     # 2. Contar el número de registros/llamadas por Agente
-    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polaridad'
+    # ¡CORRECCIÓN AQUÍ! NOMBRES DE COLUMNA AHORA SON 'Polarity'
     df_agrupado_por_agente = df_to_graph.groupby('Agente').agg(
-        promedio_polaridad=('Polaridad', 'mean'),
+        promedio_polaridad=('Polarity', 'mean'),
         promedio_confianza=('Confianza', 'mean'),
         numero_llamadas=('Agente', 'count') # Cuenta el número de filas por Agente
     ).reset_index()
@@ -483,7 +482,7 @@ st.sidebar.header("Filtros de Datos")
 
 # Filtro por fecha (rango de fechas)
 # Asegúrate de que 'fecha_convertida' exista antes de intentar obtener min/max
-if 'Fecha' in df.columns and not df['Fecha'].isnull().all():
+if 'Fecha' in df.columns and not df['Fecha'].isnull().all().any(): # Added .any() for robustness
     min_date = pd.to_datetime(df['Fecha'], errors='coerce').min().date()
     max_date = pd.to_datetime(df['Fecha'], errors='coerce').max().date()
 

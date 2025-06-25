@@ -20,7 +20,8 @@ st.set_page_config(layout="wide")
 # Definir la ruta base donde se encuentra el archivo de datos.
 carpeta_base = Path(__file__).parent.parent / "data"
 # Construir la ruta completa al archivo Excel principal.
-archivo_principal = carpeta_base / "reporte_completo_con_celular_cartera_BI (3).xlsx"
+# CAMBIO AQUÍ: Nombre del archivo Excel actualizado
+archivo_principal = carpeta_base / "reporte_analisis_conversaciones_v2.xlsx"
 
 # Cargar el archivo Excel en un DataFrame de pandas.
 try:
@@ -29,13 +30,14 @@ except FileNotFoundError:
     st.error(f"Error: El archivo no se encontró en la ruta especificada: {archivo_principal}")
     st.stop() # Detiene la ejecución de la aplicación si el archivo no se encuentra.
 
-# --- LÍNEA AÑADIDA PARA DEPURACIÓN ---
-# Imprime todas las columnas del DataFrame recién cargado para verificar los nombres exactos.
+# --- LÍNEA CLAVE PARA DEPURACIÓN ---
+# Por favor, copia y pega la salida de esta línea aquí.
 print("Columnas en el DataFrame después de la carga:", df.columns)
 # -----------------------------------
 
 # Convertir la columna 'Fecha' a formato de fecha y hora, manejando errores.
-# Se asume que la columna ahora se llama 'Fecha' (con F mayúscula)
+# Se asume que la columna ahora se llama 'Fecha' (con F mayúscula).
+# Si esta línea sigue dando error, el nombre 'Fecha' no es el exacto.
 df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 
 # Asegurarse de que 'Agente' sea de tipo string para evitar errores en agrupaciones/filtros.
@@ -172,7 +174,6 @@ def graficar_polaridad_asesor_total(df_to_graph):
     # Calcular el promedio de 'Polarity' por 'Agente'.
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
-    # Verificar si el DataFrame agrupado está vacío
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio de polaridad por Agente después de agrupar. Revisa tus filtros.")
         return
@@ -501,7 +502,7 @@ def main():
         if not df_filtrado['fecha_convertida'].dropna().empty:
             fechas_validas = df_filtrado['fecha_convertida'].dropna().dt.date.unique()
             fechas_ordenadas = sorted(fechas_validas)
-            opciones_fechas = ["Todas"] + [str(fecha) for fecha in fechas_ordenadas]
+            opciones_fechas = ["Todos"] + [str(fecha) for fecha in fechas_ordenadas]
 
             # Debug: Mostrar las fechas que se están usando para el SelectBox
             st.sidebar.write(f"📅 Fechas detectadas para el filtro: {len(fechas_ordenadas)} únicas.")

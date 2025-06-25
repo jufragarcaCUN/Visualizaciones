@@ -26,7 +26,7 @@ carpeta_base = Path(__file__).parent.parent / "data"
 
 # Construir la ruta completa al archivo Excel principal.
 # CORRECCIÓN DE SINTAXIS: Faltaba una comilla al inicio del nombre del archivo.
-archivo_principal = carpeta_base / "Mi_DataFrame_Completo.xlsx"
+archivo_principal = carpeta_base / "reporte_analisis_conversaciones_v2.xlsx"
 
 # Cargar el archivo Excel en un DataFrame de pandas.
 try:

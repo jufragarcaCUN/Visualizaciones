@@ -20,7 +20,7 @@ st.set_page_config(layout="wide")
 # Definir la ruta base donde se encuentra el archivo de datos.
 carpeta_base = Path(__file__).parent.parent / "data"
 # Construir la ruta completa al archivo Excel principal.
-archivo_principal = carpeta_base / "reporte_analisis_conversaciones_v2.xlsx"
+archivo_principal = carpeta_base / "reporte_completo_con_celular_cartera_BI (3).xlsx"
 
 # Cargar el archivo Excel en un DataFrame de pandas.
 try:
@@ -34,21 +34,7 @@ except FileNotFoundError:
 print("Columnas en el DataFrame después de la carga:", df.columns)
 # -----------------------------------
 
-# Configurar la configuración regional a español para el formato de fechas.
-# Esto es crucial para que `pd.to_datetime` pueda interpretar nombres de meses en español.
-#try:
-    #locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-#except locale.Error:
-    #st.warning("No se pudo establecer la configuración regional 'es_ES.UTF-8'. La conversión de fechas con nombres de meses en español podría fallar. Asegúrese de que el entorno soporte esta configuración regional.")
-    # Intenta con una alternativa común para sistemas Windows si la anterior falla
-    #try:
-        #locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')
-    #except locale.Error:
-        #st.warning("No se pudo establecer la configuración regional 'Spanish_Spain.1252' tampoco. La conversión de fechas podría ser inconsistente.")
-
-
 # Convertir la columna 'Fecha' a formato de fecha y hora, manejando errores.
-# Se usa un formato explícito para "Junio 10 de 2025".
 # Se asume que la columna ahora se llama 'Fecha' (con F mayúscula)
 df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 
@@ -57,13 +43,21 @@ df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 if 'Agente' in df.columns:
     df['Agente'] = df['Agente'].astype(str)
 
+# --- INICIO DE CAMBIOS PARA SOLUCIONAR TypeError ---
+# Convertir columnas de métricas a numérico, forzando los errores a NaN
+# Esto es crucial para que las operaciones de promedio funcionen correctamente.
+numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity', 'Palabras', 'Oraciones']
+for col in numeric_cols_to_convert:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    else:
+        st.warning(f"⚠️ La columna '{col}' esperada para conversión numérica no se encontró en los datos. Esto podría afectar el cálculo de métricas.")
+# --- FIN DE CAMBIOS PARA SOLUCIONAR TypeError ---
+
+
 # ===================================================
 # PASO 4: Función para mostrar métricas resumen
 # ===================================================
-# No es necesario importar de nuevo, ya se hizo al inicio del script.
-# import streamlit as st
-# import pandas as pd
-
 def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
 
@@ -78,9 +72,16 @@ def display_summary_metrics(df_to_display):
 
     # Verifica si el DataFrame contiene todas las columnas necesarias
     for display_name, col_name in metrics_to_display_map.items():
+        # Añadir un chequeo adicional para asegurar que las columnas sean numéricas antes de calcular el promedio
         if col_name not in df_to_display.columns:
             st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor, verifica el nombre de la columna.")
             return
+        # Se asume que la conversión a numérico se hizo en el paso 3.
+        # Un valor nulo en todo el subset de datos también podría causar problemas si no se maneja bien.
+        if df_to_display[col_name].isnull().all():
+            st.warning(f"⚠️ La columna '{col_name}' para '{display_name}' contiene solo valores nulos. No se puede calcular el promedio.")
+            return
+
 
     # Crea las columnas en Streamlit para mostrar las métricas
     # Necesitamos 5 columnas: 4 para los promedios y 1 para el conteo de llamadas.
@@ -88,6 +89,7 @@ def display_summary_metrics(df_to_display):
 
     # Muestra el Puntaje promedio
     with cols[0]:
+        # CAMBIO: Eliminado * 100 porque Puntaje_Total_% ya está en porcentaje
         promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean()
         st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")
 
@@ -120,6 +122,10 @@ def graficar_puntaje_total(df_to_graph):
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Puntaje_Total_%' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de puntaje total. Asegúrate de tener las columnas 'Agente' y 'Puntaje_Total_%'.")
         return
+    # Asegurarse de que la columna no esté vacía después de los filtros
+    if df_to_graph['Puntaje_Total_%'].isnull().all():
+        st.warning("⚠️ La columna 'Puntaje_Total_%' contiene solo valores nulos después de aplicar los filtros. No se puede graficar el promedio.")
+        return
 
     # Calcular el promedio de 'Puntaje_Total_%' por 'Agente'.
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Puntaje_Total_%'].mean().reset_index()
@@ -136,9 +142,11 @@ def graficar_puntaje_total(df_to_graph):
         color="Puntaje_Total_%",
         color_continuous_scale="Greens",
         title="🎯 Promedio Total por Agente",
-        labels={"Puntaje_Total_%": "Promedio de Puntaje", "Agente": "Agente"}
+        # CAMBIO: Etiqueta de eje Y para indicar porcentaje
+        labels={"Puntaje_Total_%": "Promedio de Puntaje (%)", "Agente": "Agente"}
     )
-    fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
+    # CAMBIO: Añadido % al formato del texto en las barras
+    fig.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
     fig.update_layout(
         height=600,
         xaxis_tickangle=-45,
@@ -156,10 +164,15 @@ def graficar_polaridad_asesor_total(df_to_graph):
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polarity' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de polaridad por Agente. Asegúrate de tener las columnas 'Agente' y 'Polarity'.")
         return
+    # Asegurarse de que la columna no esté vacía después de los filtros
+    if df_to_graph['Polarity'].isnull().all():
+        st.warning("⚠️ La columna 'Polarity' contiene solo valores nulos después de aplicar los filtros. No se puede graficar el promedio.")
+        return
 
     # Calcular el promedio de 'Polarity' por 'Agente'.
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
+    # Verificar si el DataFrame agrupado está vacío
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio de polaridad por Agente después de agrupar. Revisa tus filtros.")
         return
@@ -331,10 +344,6 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
 # ===================================================
 # PASO 8: Función para mostrar busbujas
 # ===================================================      
-# import plotly.express as px # Ya importado
-# import pandas as pd # Ya importado
-# import streamlit as st # Ya importado
-
 def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
     # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
     if df_to_graph is None or df_to_graph.empty or \
@@ -343,6 +352,11 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
        'Confianza' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de burbujas. Asegúrate de tener las columnas 'Agente', 'Polarity' y 'Confianza'.")
         return
+    # Asegurarse de que las columnas no estén vacías después de los filtros
+    if df_to_graph['Polarity'].isnull().all() or df_to_graph['Confianza'].isnull().all():
+        st.warning("⚠️ Las columnas 'Polarity' o 'Confianza' contienen solo valores nulos después de aplicar los filtros. No se puede graficar el promedio.")
+        return
+
 
     # 1. Agrupar por 'Agente' y calcular promedios de polaridad y confianza
     # 2. Contar el número de registros/llamadas por Agente
@@ -460,7 +474,13 @@ def main():
 
     # --- FILTRO POR AGENTE ---
     # Nombre de columna actualizado
-    asesores = ["Todos"] + sorted(df["Agente"].dropna().unique())
+    # Verificar si 'Agente' existe y no está completamente vacío antes de intentar obtener únicos.
+    if 'Agente' in df.columns and not df['Agente'].dropna().empty:
+        asesores = ["Todos"] + sorted(df["Agente"].dropna().unique())
+    else:
+        asesores = ["Todos"] # Si no hay datos de Agente, solo ofrecer 'Todos'
+        st.sidebar.warning("⚠️ No se encontraron agentes en los datos. El filtro de Agente estará limitado.")
+
     asesor_seleccionado = st.sidebar.selectbox("👤 Selecciona un Agente", asesores)
 
     df_filtrado = df.copy() # Siempre empezamos con una copia del DF original

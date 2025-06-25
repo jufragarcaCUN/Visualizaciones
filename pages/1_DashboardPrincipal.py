@@ -45,12 +45,19 @@ df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 if 'Agente' in df.columns:
     df['Agente'] = df['Agente'].astype(str)
 
-# --- INICIO DE CAMBIOS PARA SOLUCIONAR TypeError ---
+# --- INICIO DE CAMBIOS PARA SOLUCIONAR TypeError y manejo de porcentajes ---
 # Convertir columnas de métricas a numérico, forzando los errores a NaN
 # Esto es crucial para que las operaciones de promedio funcionen correctamente.
 numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity', 'Palabras', 'Oraciones']
 for col in numeric_cols_to_convert:
     if col in df.columns:
+        # Si es la columna de puntaje y contiene el símbolo %, lo eliminamos primero.
+        if col == 'Puntaje_Total_%' and df[col].dtype == 'object': # Comprobar si es un objeto (string)
+            df[col] = df[col].astype(str).str.replace('%', '', regex=False)
+            # También podríamos dividir por 100 aquí si el porcentaje se debe tratar como decimal
+            # df[col] = pd.to_numeric(df[col], errors='coerce') / 100
+            # Pero dado que se espera 100.00% y se usa así en display_summary_metrics,
+            # lo mantenemos como el valor entero/flotante sin dividir por 100
         df[col] = pd.to_numeric(df[col], errors='coerce')
     else:
         st.warning(f"⚠️ La columna '{col}' esperada para conversión numérica no se encontró en los datos. Esto podría afectar el cálculo de métricas.")

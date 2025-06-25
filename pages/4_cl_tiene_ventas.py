@@ -426,4 +426,126 @@ def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
     ).reset_index()
 
     if df_agrupado_por_agente.empty:
-        st.
+        st.warning("⚠️ No hay datos para graficar la Polaridad Promedio vs. Confianza Promedio por Agente después de agrupar. Revisa tus filtros.")
+        return
+
+    # Crear el gráfico de burbujas
+    fig = px.scatter(
+        df_agrupado_por_agente,
+        x="promedio_polaridad",
+        y="promedio_confianza",
+        size="numero_llamadas", # El tamaño de la burbuja representa el número de llamadas
+        color="Agente",
+        hover_name="Agente",
+        hover_data={
+            "promedio_polaridad": ":.2f",
+            "promedio_confianza": ":.2f",
+            "numero_llamadas": True
+        },
+        title="Polaridad Promedio vs. Confianza Promedio por Agente",
+        labels={
+            "promedio_polaridad": "Polaridad Promedio",
+            "promedio_confianza": "Confianza Promedio (%)",
+            "numero_llamadas": "Número de Llamadas"
+        }
+    )
+
+    fig.update_traces(marker=dict(line=dict(width=1, color='DarkSlateGrey')))
+    fig.update_layout(
+        xaxis_title="Polaridad Promedio",
+        yaxis_title="Confianza Promedio (%)",
+        height=600,
+        plot_bgcolor="white",
+        font=dict(family="Arial", size=14),
+        title_x=0.5
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# ===================================================
+# PASO 9: Interfaz de usuario (Streamlit App)
+# ===================================================
+st.title("📊 Dashboard de Análisis de Interacciones")
+st.markdown("Bienvenido al dashboard de análisis de interacciones con clientes. Utiliza los filtros para explorar los datos.")
+
+# --- BARRA LATERAL ---
+st.sidebar.header("Filtros de Datos")
+
+# Filtro por fecha (rango de fechas)
+# Asegúrate de que 'fecha_convertida' exista antes de intentar obtener min/max
+if 'fecha_convertida' in df.columns and not df['fecha_convertida'].isnull().all():
+    min_date = df['fecha_convertida'].min().date()
+    max_date = df['fecha_convertida'].max().date()
+    date_range = st.sidebar.date_input(
+        "Selecciona rango de fechas:",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date
+    )
+    # Asegurarse de que date_range sea una tupla de dos elementos
+    if len(date_range) == 2:
+        start_date, end_date = date_range
+        df_filtered_date = df[
+            (df['fecha_convertida'].dt.date >= start_date) &
+            (df['fecha_convertida'].dt.date <= end_date)
+        ]
+    elif len(date_range) == 1: # Si solo se selecciona una fecha
+        start_date = date_range[0]
+        df_filtered_date = df[
+            (df['fecha_convertida'].dt.date >= start_date)
+        ]
+    else: # Si no se selecciona nada o hay un problema, usar el DataFrame original
+        df_filtered_date = df.copy()
+else:
+    st.sidebar.warning("No se pudo aplicar filtro por fecha: la columna 'Fecha' no existe o está vacía.")
+    df_filtered_date = df.copy() # Continúa con el DataFrame completo si no hay columna de fecha
+
+
+# Filtro por Agente
+if 'Agente' in df_filtered_date.columns:
+    all_agents = sorted(df_filtered_date['Agente'].unique().tolist())
+    selected_agents = st.sidebar.multiselect(
+        "Selecciona Agentes:",
+        options=all_agents,
+        default=all_agents # Selecciona todos por defecto
+    )
+    # Aplicar filtro de agente
+    if selected_agents:
+        df_final_filtered = df_filtered_date[df_filtered_date['Agente'].isin(selected_agents)].copy()
+    else:
+        st.warning("Por favor, selecciona al menos un agente para ver los datos.")
+        df_final_filtered = pd.DataFrame() # DataFrame vacío si no hay agentes seleccionados
+else:
+    st.sidebar.warning("No se pudo aplicar filtro por agente: la columna 'Agente' no existe.")
+    df_final_filtered = df_filtered_date.copy() # Continúa con el DataFrame filtrado por fecha si no hay columna de agente
+
+# ===================================================
+# PASO 10: Mostrar gráficos y métricas
+# ===================================================
+
+if df_final_filtered.empty:
+    st.warning("No hay datos para mostrar con los filtros aplicados. Ajusta tus selecciones.")
+else:
+    # Muestra las métricas resumen
+    display_summary_metrics(df_final_filtered)
+    st.markdown("---")
+
+    # Muestra el gráfico de puntaje total por Agente
+    graficar_puntaje_total(df_final_filtered)
+    st.markdown("---")
+
+    # Muestra el gráfico de polaridad por Agente
+    graficar_polaridad_asesor_total(df_final_filtered)
+    st.markdown("---")
+
+    # Muestra el heatmap
+    graficar_asesores_metricas_heatmap(df_final_filtered)
+    st.markdown("---")
+
+    # Muestra los gauges
+    graficar_polaridad_subjetividad_gauges(df_final_filtered)
+    st.markdown("---")
+
+    # Muestra la gráfica de burbujas
+    graficar_polaridad_confianza_asesor_burbujas(df_final_filtered)
+    st.markdown("---")

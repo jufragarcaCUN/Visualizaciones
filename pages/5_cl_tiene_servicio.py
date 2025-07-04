@@ -254,69 +254,80 @@ def graficar_polaridad_asesor_total(df_to_graph):
 # ===================================================
 # PASO 6: Función para heatmap de métricas por Agente
 # ===================================================
-#def graficar_asesores_metricas_heatmap(df_to_graph):
- #   st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
-    # Verificar que el DataFrame no esté vacío y que contenga la columna 'Agente'
-  #  if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
-   #     st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
-    #    return
 
-    # Definir **directamente** las columnas que deben estar en el heatmap (las de conteo)
-    # ¡NOMBRES DE COLUMNA DE CONTEO ACTUALIZADOS A LA ÚLTIMA LISTA PROPORCIONADA!
-    #metric_cols = [
-     #   "Conteo_apertura",
-      #  "Conteo_presentacion_beneficio",
-       # "Conteo_creacion_necesidad",
-        #"Conteo_manejo_objeciones",
-        #"Conteo_cierre",
-        #"Conteo_confirmacion_bienvenida",
-        #"Conteo_consejos_cierre"
-    #]
+# def graficar_asesores_metricas_heatmap(df_to_graph):
+#     st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
 
-    # Filtrar solo las columnas que realmente existen en el DataFrame de entrada
-    #existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
+#     # Validar que el DataFrame no esté vacío y que tenga la columna 'Agente'
+#     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
+#         st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
+#         return
 
-    if not existing_metric_cols:
-        st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap en los datos. Asegúrate de que las columnas como 'Conteo_apertura' existan.")
-        return
+#     # Definir las columnas de métricas de conteo que se desean graficar
+#     metric_cols = [
+#         "Conteo_apertura",
+#         "Conteo_presentacion_beneficio",
+#         "Conteo_creacion_necesidad",
+#         "Conteo_manejo_objeciones",
+#         "Conteo_cierre",
+#         "Conteo_confirmacion_bienvenida",
+#         "Conteo_consejos_cierre"
+#     ]
 
-    # Verificar que TODAS las columnas de conteo requeridas existan y no estén completamente nulas
-    for col in existing_metric_cols:
-        if df_to_graph[col].isnull().all():
-            st.warning(f"⚠️ La columna '{col}' para el Heatmap contiene solo valores nulos después de aplicar los filtros. No se puede graficar el promedio para esta columna.")
-            existing_metric_cols.remove(col) # Quitar la columna si está completamente nula
-            continue
-        if not pd.api.types.is_numeric_dtype(df_to_graph[col]):
-            st.error(f"❌ La columna '{col}' no es numérica. Por favor, verifica el preprocesamiento de datos. Esto afectará el cálculo del heatmap.")
-            existing_metric_cols.remove(col) # Quitar la columna si no es numérica
+#     # Filtrar sólo las métricas que realmente existen en el DataFrame
+#     existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
 
-    if not existing_metric_cols: # Re-chequear si quedan columnas después de las validaciones
-        st.warning("⚠️ No quedan columnas válidas para el Heatmap después de la validación de datos.")
-        return
+#     # Validar que al menos una métrica exista
+#     if not existing_metric_cols:
+#         st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap. Asegúrate de que existan columnas como 'Conteo_apertura'.")
+#         return
 
-    # Usar 'Agente' para la agrupación y CALCULAR EL PROMEDIO de las métricas de conteo.
-    df_grouped = df_to_graph.groupby('Agente')[existing_metric_cols].mean().reset_index()
+#     # Verificar que cada columna:
+#     # - no esté completamente vacía
+#     # - sea de tipo numérico
+#     for col in existing_metric_cols[:]:  # Copia de la lista original para modificarla dentro del bucle
+#         if df_to_graph[col].isnull().all():
+#             st.warning(f"⚠️ La columna '{col}' contiene solo valores nulos. No se puede graficar.")
+#             existing_metric_cols.remove(col)
+#             continue
+#         if not pd.api.types.is_numeric_dtype(df_to_graph[col]):
+#             st.error(f"❌ La columna '{col}' no es numérica. Esto afectará el cálculo del heatmap.")
+#             existing_metric_cols.remove(col)
 
-    if df_grouped.empty:
-        st.warning("No hay datos para mostrar en el Heatmap después de agrupar por Agente.")
-        return
+#     # Rechequear que queden columnas válidas
+#     if not existing_metric_cols:
+#         st.warning("⚠️ No quedan columnas válidas para el Heatmap después de la validación de datos.")
+#         return
 
-    df_heatmap = df_grouped.set_index("Agente")[existing_metric_cols]
+#     # Agrupar por agente y calcular el promedio de cada métrica
+#     df_grouped = df_to_graph.groupby('Agente')[existing_metric_cols].mean().reset_index()
 
-    fig2 = px.imshow(
-        df_heatmap,
-        labels=dict(x="Métrica", y="Agente", color="Valor promedio"), # Etiqueta y actualizada para indicar promedio
-        color_continuous_scale='Greens',
-        aspect="auto",
-        title="Heatmap: Agente vs. Métricas de Conteo (Promedio)" # Título actualizado
-    )
-    fig2.update_layout(
-        font=dict(family="Arial", size=12),
-        height=700,
-        title_x=0.5,
-        plot_bgcolor='white'
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+#     if df_grouped.empty:
+#         st.warning("No hay datos para mostrar en el Heatmap después de agrupar por Agente.")
+#         return
+
+#     # Preparar la tabla para el heatmap
+#     df_heatmap = df_grouped.set_index("Agente")[existing_metric_cols]
+
+#     # Crear el heatmap con Plotly
+#     fig2 = px.imshow(
+#         df_heatmap,
+#         labels=dict(x="Métrica", y="Agente", color="Valor promedio"),
+#         color_continuous_scale='Greens',
+#         aspect="auto",
+#         title="Heatmap: Agente vs. Métricas de Conteo (Promedio)"
+#     )
+
+#     # Personalizar el diseño del gráfico
+#     fig2.update_layout(
+#         font=dict(family="Arial", size=12),
+#         height=700,
+#         title_x=0.5,
+#         plot_bgcolor='white'
+#     )
+
+#     # Mostrar el gráfico en Streamlit
+#     st.plotly_chart(fig2, use_container_width=True)
 
 # ===================================================
 # PASO 7: Función para indicadores tipo gauge

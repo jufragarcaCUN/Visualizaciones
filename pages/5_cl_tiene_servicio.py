@@ -673,8 +673,8 @@ def main():
     graficar_polaridad_asesor_total(df_final_filtered)
     st.markdown("---")
 
-    graficar_asesores_metricas_heatmap(df_final_filtered)
-    st.markdown("---")
+    #graficar_asesores_metricas_heatmap(df_final_filtered)
+    #st.markdown("---")
 
     graficar_polaridad_subjetividad_gauges(df_final_filtered)
     st.markdown("---")

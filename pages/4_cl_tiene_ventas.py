@@ -162,34 +162,55 @@ def display_summary_metrics(df_to_display):
 # PASO 5: Función para gráfico de puntaje total por Agente
 # ===================================================
 def graficar_puntaje_total(df_to_graph):
-    st.markdown("### 🎯 Promedio Total por Agente")
-    # Nombres de columnas actualizados
-    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Puntaje_Total_%' not in df_to_graph.columns:
-        st.warning("⚠️ Datos incompletos para la gráfica de puntaje total. Asegúrate de tener las columnas 'Agente' y 'Puntaje_Total_%'.")
-        return
-    # Asegurarse de que la columna no esté vacía después de los filtros y sea numérica
-    if df_to_graph['Puntaje_Total_%'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Puntaje_Total_%']):
-        st.warning("⚠️ La columna 'Puntaje_Total_%' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
+    st.markdown("### 🎯 Promedio por Categoría de Interacción")
+
+    # Lista de columnas de categoría a graficar
+    columnas_categoria = [
+        "saludo_presentacion",
+        "presentacion_compania",
+        "politica_grabacion",
+        "valor_agregado",
+        "costos",
+        "pre_cierre",
+        "normativos"
+    ]
+
+    # Validar que existan en el DataFrame
+    columnas_validas = [col for col in columnas_categoria if col in df_to_graph.columns]
+
+    if not columnas_validas:
+        st.warning("⚠️ No se encontraron columnas válidas para graficar por categoría.")
         return
 
-    # Calcular el promedio de 'Puntaje_Total_%' por 'Agente'.
-    df_agrupado_por_agente = df_to_graph.groupby('Agente')['Puntaje_Total_%'].mean().reset_index()
+    # Verificar que sean numéricas y calcular promedios
+    promedios = {}
+    for col in columnas_validas:
+        if pd.api.types.is_numeric_dtype(df_to_graph[col]):
+            promedio = df_to_graph[col].mean()
+            if not pd.isna(promedio):
+                promedios[col] = promedio
+        else:
+            st.warning(f"⚠️ La columna '{col}' no es numérica. Se omitirá del gráfico.")
 
-    if df_agrupado_por_agente.empty:
-        st.warning("⚠️ No hay datos para graficar el promedio total por Agente después de agrupar. Revisa tus filtros.")
+    if not promedios:
+        st.warning("⚠️ No hay promedios válidos para graficar.")
         return
 
+    # Crear DataFrame para graficar
+    df_promedios = pd.DataFrame(list(promedios.items()), columns=["Categoría", "Promedio"])
+
+    # Crear gráfico
     fig = px.bar(
-        df_agrupado_por_agente.sort_values("Puntaje_Total_%", ascending=False),
-        x="Agente",
-        y="Puntaje_Total_%",
-        text="Puntaje_Total_%",
-        color="Puntaje_Total_%",
+        df_promedios.sort_values("Promedio", ascending=False),
+        x="Categoría",
+        y="Promedio",
+        text="Promedio",
+        color="Promedio",
         color_continuous_scale="Greens",
-        title="Promedio Total por Agente",
-        labels={"Puntaje_Total_%": "Promedio de Puntaje (%)", "Agente": "Agente"}
+        title="Promedio por Categoría de Interacción",
+        labels={"Promedio": "Promedio", "Categoría": "Categoría"}
     )
-    fig.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
+    fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
     fig.update_layout(
         height=600,
         xaxis_tickangle=-45,
@@ -197,8 +218,8 @@ def graficar_puntaje_total(df_to_graph):
         font=dict(family="Arial", size=14),
         title_x=0.5
     )
-    st.plotly_chart(fig, use_container_width=True)
 
+    st.plotly_chart(fig, use_container_width=True)
 # ===================================================
 # Función para gráfico de polaridad por Agente
 # ===================================================

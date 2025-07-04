@@ -254,24 +254,24 @@ def graficar_polaridad_asesor_total(df_to_graph):
 # ===================================================
 # PASO 6: Función para heatmap de métricas por Agente
 # ===================================================
-def graficar_asesores_metricas_heatmap(df_to_graph):
-    st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
+#def graficar_asesores_metricas_heatmap(df_to_graph):
+ #   st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
     # Verificar que el DataFrame no esté vacío y que contenga la columna 'Agente'
-    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
-        st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
-        return
+  #  if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
+   #     st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
+    #    return
 
     # Definir **directamente** las columnas que deben estar en el heatmap (las de conteo)
     # ¡NOMBRES DE COLUMNA DE CONTEO ACTUALIZADOS A LA ÚLTIMA LISTA PROPORCIONADA!
-    metric_cols = [
-        "Conteo_apertura",
-        "Conteo_presentacion_beneficio",
-        "Conteo_creacion_necesidad",
-        "Conteo_manejo_objeciones",
-        "Conteo_cierre",
-        "Conteo_confirmacion_bienvenida",
-        "Conteo_consejos_cierre"
-    ]
+    #metric_cols = [
+     #   "Conteo_apertura",
+      #  "Conteo_presentacion_beneficio",
+       # "Conteo_creacion_necesidad",
+        #"Conteo_manejo_objeciones",
+        #"Conteo_cierre",
+        #"Conteo_confirmacion_bienvenida",
+        #"Conteo_consejos_cierre"
+    #]
 
     # Filtrar solo las columnas que realmente existen en el DataFrame de entrada
     existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]

@@ -274,7 +274,7 @@ def graficar_polaridad_asesor_total(df_to_graph):
     #]
 
     # Filtrar solo las columnas que realmente existen en el DataFrame de entrada
-    existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
+    #existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
 
     if not existing_metric_cols:
         st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap en los datos. Asegúrate de que las columnas como 'Conteo_apertura' existan.")

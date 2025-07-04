@@ -162,9 +162,9 @@ def display_summary_metrics(df_to_display):
 # PASO 5: Función para gráfico de puntaje total por Agente
 # ===================================================
 def graficar_puntaje_total(df_to_graph):
-    st.markdown("### 🎯 Promedio por Categoría de Interacción")
+     st.markdown("### 🎯 Promedio por Categoría de Interacción")
 
-    # Lista de columnas de categoría a graficar
+    # Columnas de categorías a evaluar
     columnas_categoria = [
         "saludo_presentacion",
         "presentacion_compania",
@@ -175,14 +175,25 @@ def graficar_puntaje_total(df_to_graph):
         "normativos"
     ]
 
-    # Validar que existan en el DataFrame
+    # Diccionario de nombres legibles
+    nombres_amigables = {
+        "saludo_presentacion": "Saludo",
+        "presentacion_compania": "Presentación",
+        "politica_grabacion": "Política de Grabación",
+        "valor_agregado": "Valor Agregado",
+        "costos": "Costos",
+        "pre_cierre": "Pre-cierre",
+        "normativos": "Normativos"
+    }
+
+    # Verificar columnas válidas
     columnas_validas = [col for col in columnas_categoria if col in df_to_graph.columns]
 
     if not columnas_validas:
         st.warning("⚠️ No se encontraron columnas válidas para graficar por categoría.")
         return
 
-    # Verificar que sean numéricas y calcular promedios
+    # Calcular promedios
     promedios = {}
     for col in columnas_validas:
         if pd.api.types.is_numeric_dtype(df_to_graph[col]):
@@ -190,16 +201,18 @@ def graficar_puntaje_total(df_to_graph):
             if not pd.isna(promedio):
                 promedios[col] = promedio
         else:
-            st.warning(f"⚠️ La columna '{col}' no es numérica. Se omitirá del gráfico.")
+            st.warning(f"⚠️ La columna '{col}' no es numérica y fue omitida.")
 
     if not promedios:
-        st.warning("⚠️ No hay promedios válidos para graficar.")
+        st.warning("⚠️ No hay datos válidos para graficar.")
         return
 
     # Crear DataFrame para graficar
     df_promedios = pd.DataFrame(list(promedios.items()), columns=["Categoría", "Promedio"])
+    df_promedios["Categoría"] = df_promedios["Categoría"].map(nombres_amigables)
+    df_promedios["Promedio"] = df_promedios["Promedio"] * 100  # Convertir a %
 
-    # Crear gráfico
+    # Gráfico
     fig = px.bar(
         df_promedios.sort_values("Promedio", ascending=False),
         x="Categoría",
@@ -207,12 +220,12 @@ def graficar_puntaje_total(df_to_graph):
         text="Promedio",
         color="Promedio",
         color_continuous_scale="Greens",
-        title="Promedio por Categoría de Interacción",
-        labels={"Promedio": "Promedio", "Categoría": "Categoría"}
+        title="Promedio por Categoría de Interacción (%)",
+        labels={"Promedio": "Promedio (%)", "Categoría": "Categoría"}
     )
-    fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
+    fig.update_traces(texttemplate='%{y:.1f}%', textposition='outside')
     fig.update_layout(
-        height=600,
+        height=500,
         xaxis_tickangle=-45,
         plot_bgcolor="white",
         font=dict(family="Arial", size=14),

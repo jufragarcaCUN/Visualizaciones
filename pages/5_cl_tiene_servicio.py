@@ -52,7 +52,7 @@ if 'Fecha' in df.columns:
     df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
     # Aviso si hay muchas fechas nulas después de la conversión
     if df['fecha_convertida'].isnull().sum() > 0:
-        st.warning(f"⚠️ Se encontraron {df['fecha_convertida'].isnull().sum()} valores nulos en la columna 'fecha_convertida' después de la conversión. Esto podría indicar un formato de fecha inconsistente en la columna 'Fecha' original.")
+        st.warning("Hace falta cargar el Data Frame de Junio y Julio")
 else:
     st.error("❌ La columna 'Fecha' no se encontró en el DataFrame. No se podrá filtrar por fecha.")
 

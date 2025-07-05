@@ -26,7 +26,7 @@ carpeta_base = Path(__file__).parent.parent / "data"
 
 # Construir la ruta completa al archivo Excel principal.
 # Asegúrate de que el nombre del archivo sea el correcto que genera tu script de análisis.
-archivo_principal = carpeta_base / "estructura_completa.xlsx"
+archivo_principal = carpeta_base / "e.xlsx"
 
 # Cargar el archivo Excel en un DataFrame de pandas.
 try:

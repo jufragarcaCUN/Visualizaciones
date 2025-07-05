@@ -6,7 +6,6 @@ from pathlib import Path
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-#import locale # Esta librería no se usa, se podría quitar si no la necesitas más adelante
 import datetime
 
 # ===================================================
@@ -17,71 +16,66 @@ st.set_page_config(layout="wide")
 # ===================================================
 # PASO 3: Carga y preprocesamiento del archivo principal
 # ===================================================
-# Definir la ruta base donde se encuentra el archivo de datos.
-# __file__ es el archivo actual, .parent es la carpeta que lo contiene.
-# Asumo que 'data' está un nivel arriba de la carpeta donde se ejecuta este script.
-# Si tu estructura es diferente, ajusta esta línea.
-# Ejemplo: si el Excel está en la misma carpeta que el script, sería: carpeta_base = Path(__file__).parent
-carpeta_base = Path(__file__).parent.parent / "data"
 
-# Construir la ruta completa al archivo Excel principal.
-# Asegúrate de que el nombre del archivo sea el correcto que genera tu script de análisis.
-archivo_principal = carpeta_base / "e.xlsx"
+# Utiliza st.cache_data para cachear la carga y preprocesamiento de datos
+# Esto mejora el rendimiento de la aplicación al evitar recargar y procesar los datos
+# cada vez que Streamlit re-ejecuta el script.
+@st.cache_data
+def load_and_preprocess_data():
+    # Definir la ruta base donde se encuentra el archivo de datos.
+    # __file__ es el archivo actual, .parent es la carpeta que lo contiene.
+    # Asumo que 'data' está un nivel arriba de la carpeta donde se ejecuta este script.
+    # Si tu estructura es diferente, ajusta esta línea.
+    # Ejemplo: si el Excel está en la misma carpeta que el script, sería: carpeta_base = Path(__file__).parent
+    carpeta_base = Path(__file__).parent.parent / "data"
 
-# Cargar el archivo Excel en un DataFrame de pandas.
-try:
-    df = pd.read_excel(archivo_principal)
-    st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
-except FileNotFoundError:
-    st.error(f"❌ Error: El archivo no se encontró en la ruta especificada: **{archivo_principal}**")
-    st.warning(f"Asegúrate de que el archivo '{archivo_principal.name}' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).") # Mensaje de advertencia actualizado
-    st.stop() # Detiene la ejecución de la aplicación si el archivo no se encuentra.
-except Exception as e:
-    st.error(f"❌ Error al cargar el archivo Excel: {e}")
-    st.stop() # Detiene la ejecución en caso de otro error de carga.
+    # Construir la ruta completa al archivo Excel principal.
+    # Asegúrate de que el nombre del archivo sea el correcto que genera tu script de análisis.
+    archivo_principal = carpeta_base / "e.xlsx"
 
+    # Cargar el archivo Excel en un DataFrame de pandas.
+    try:
+        df = pd.read_excel(archivo_principal)
+        st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
+    except FileNotFoundError:
+        st.error(f"❌ Error: El archivo no se encontró en la ruta especificada: **{archivo_principal}**")
+        st.warning(f"Asegúrate de que el archivo '{archivo_principal.name}' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).")
+        st.stop()
+    except Exception as e:
+        st.error(f"❌ Error al cargar el archivo Excel: {e}")
+        st.stop()
 
-# --- LÍNEA CLAVE PARA DEPURACIÓN ---
-# Imprime las columnas del DataFrame para verificar si son las esperadas.
-# Esta salida aparecerá en la consola o en los logs de Streamlit Cloud.
-print("Columnas en el DataFrame después de la carga:", df.columns.tolist())
-# -----------------------------------
+    # --- LÍNEA CLAVE PARA DEPURACIÓN ---
+    print("Columnas en el DataFrame después de la carga:", df.columns.tolist())
+    # -----------------------------------
 
-# Convertir la columna 'Fecha' a formato de fecha y hora, manejando errores.
-if 'Fecha' in df.columns:
-    df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
-    # Aviso si hay muchas fechas nulas después de la conversión
-    if df['fecha_convertida'].isnull().sum() > 0:
-        st.warning(f"⚠️ Se encontraron {df['fecha_convertida'].isnull().sum()} valores nulos en la columna 'fecha_convertida' después de la conversión. Esto podría indicar un formato de fecha inconsistente en la columna 'Fecha' original.")
-else:
-    st.error("❌ La columna 'Fecha' no se encontró en el DataFrame. No se podrá filtrar por fecha.")
-
-# Asegurarse de que 'Agente' sea de tipo string para evitar errores en agrupaciones/filtros.
-if 'Agente' in df.columns:
-    df['Agente'] = df['Agente'].astype(str)
-else:
-    st.error("❌ La columna 'Agente' no se encontró en el DataFrame. Esto afectará los gráficos por Agente.")
-
-# --- INICIO DE CAMBIOS PARA SOLUCIONAR TypeError y manejo de porcentajes ---
-# Convertir columnas de métricas a numérico, forzando los errores a NaN
-# Esto es crucial para que las operaciones de promedio funcionen correctamente.
-# Nombres de columna actualizados: 'Polarity', 'Subjectivity', 'Confianza', etc.
-numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity', 'Palabras', 'Oraciones']
-for col in numeric_cols_to_convert:
-    if col in df.columns:
-        # Si es la columna de puntaje y contiene el símbolo %, lo eliminamos primero.
-        if col == 'Puntaje_Total_%' and df[col].dtype == 'object': # Comprobar si es un objeto (string)
-            df[col] = df[col].astype(str).str.replace('%', '', regex=False)
-            # No dividimos por 100 aquí, se mantiene el valor para mostrarlo directamente como porcentaje
-            # si el Excel ya lo entrega como 80.00 en lugar de 0.80.
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-        # Verificar si quedan NaNs después de la conversión
-        if df[col].isnull().sum() > 0:
-            st.warning(f"⚠️ Se encontraron {df[col].isnull().sum()} valores no numéricos en la columna '{col}' después de la conversión. Estos se tratarán como nulos y no afectarán los promedios.")
+    # Convertir la columna 'Fecha' a formato de fecha y hora, manejando errores.
+    if 'Fecha' in df.columns:
+        df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
+        # Aviso si hay muchas fechas nulas después de la conversión
+        if df['fecha_convertida'].isnull().sum() > 0:
+            st.warning(f"⚠️ Se encontraron {df['fecha_convertida'].isnull().sum()} valores nulos en la columna 'fecha_convertida' después de la conversión. Esto podría indicar un formato de fecha inconsistente en la columna 'Fecha' original.")
     else:
-        st.warning(f"⚠️ La columna '{col}' esperada para conversión numérica no se encontró en los datos. Esto podría afectar el cálculo de métricas.")
-# --- FIN DE CAMBIOS PARA SOLUCIONAR TypeError ---
+        st.error("❌ La columna 'Fecha' no se encontró en el DataFrame. No se podrá filtrar por fecha.")
 
+    # Asegurarse de que 'Agente' sea de tipo string para evitar errores en agrupaciones/filtros.
+    if 'Agente' in df.columns:
+        df['Agente'] = df['Agente'].astype(str)
+    else:
+        st.error("❌ La columna 'Agente' no se encontró en el DataFrame. Esto afectará los gráficos por Agente.")
+
+    # Convertir columnas de métricas a numérico, forzando los errores a NaN
+    numeric_cols_to_convert = ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity', 'Palabras', 'Oraciones']
+    for col in numeric_cols_to_convert:
+        if col in df.columns:
+            if col == 'Puntaje_Total_%' and df[col].dtype == 'object':
+                df[col] = df[col].astype(str).str.replace('%', '', regex=False)
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            if df[col].isnull().sum() > 0:
+                st.warning(f"⚠️ Se encontraron {df[col].isnull().sum()} valores no numéricos en la columna '{col}' después de la conversión. Estos se tratarán como nulos y no afectarán los promedios.")
+        else:
+            st.warning(f"⚠️ La columna '{col}' esperada para conversión numérica no se encontró en los datos. Esto podría afectar el cálculo de métricas.")
+    return df
 
 # ===================================================
 # PASO 4: Función para mostrar métricas resumen
@@ -89,8 +83,6 @@ for col in numeric_cols_to_convert:
 def display_summary_metrics(df_to_display):
     st.markdown("## 📋 Resumen General de Métricas")
 
-    # Define las métricas exactas que quieres mostrar y sus nombres de columna correspondientes
-    # Nombres de columna: 'Polarity', 'Subjectivity', 'Confianza'
     metrics_to_display_map = {
         "Puntaje promedio": "Puntaje_Total_%",
         "Confianza promedio": "Confianza",
@@ -98,27 +90,25 @@ def display_summary_metrics(df_to_display):
         "Subjetividad promedio": "Subjectivity",
     }
 
-    # Verifica si el DataFrame contiene todas las columnas necesarias y si son numéricas
+    # Verify if the DataFrame contains all necessary columns and if they are numeric
     for display_name, col_name in metrics_to_display_map.items():
-        if col_name is None: # Si ya se marcó como no disponible arriba
+        if col_name is None:
             continue
         if col_name not in df_to_display.columns:
             st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos. Por favor, verifica el nombre de la columna.")
-            metrics_to_display_map[display_name] = None # Marcar como no disponible
+            metrics_to_display_map[display_name] = None
             continue
         if df_to_display[col_name].isnull().all():
             st.warning(f"⚠️ La columna '{col_name}' para '{display_name}' contiene solo valores nulos. No se puede calcular el promedio.")
-            metrics_to_display_map[display_name] = None # Marcar como no disponible
+            metrics_to_display_map[display_name] = None
             continue
         if not pd.api.types.is_numeric_dtype(df_to_display[col_name]):
             st.error(f"❌ La columna '{col_name}' no es numérica. Por favor, verifica el preprocesamiento de datos. Esto afectará el cálculo de métricas.")
-            metrics_to_display_map[display_name] = None # Marcar como no disponible
+            metrics_to_display_map[display_name] = None
 
 
-    # Crea las columnas en Streamlit para mostrar las métricas
-    cols = st.columns(5) # 4 métricas + 1 conteo de llamadas
+    cols = st.columns(5)
 
-    # Muestra el Puntaje promedio
     with cols[0]:
         if metrics_to_display_map["Puntaje promedio"]:
             promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean()
@@ -126,7 +116,6 @@ def display_summary_metrics(df_to_display):
         else:
             st.metric("Puntaje promedio", "N/A")
 
-    # Muestra la Confianza promedio
     with cols[1]:
         if metrics_to_display_map["Confianza promedio"]:
             promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean()
@@ -134,38 +123,31 @@ def display_summary_metrics(df_to_display):
         else:
             st.metric("Confianza promedio", "N/A")
 
-    # Muestra la Polaridad promedio (como porcentaje si quieres escalarla, si no, déjala tal cual)
     with cols[2]:
         if metrics_to_display_map["Polaridad promedio"]:
             promedio_polaridad = df_to_display[metrics_to_display_map["Polaridad promedio"]].mean()
-            # La polaridad va de -1 a 1. Mostrarla como % podría ser confuso si no se escala.
-            # Se muestra como decimal por defecto, puedes ajustar el formato si lo prefieres como % de 0 a 100.
             st.metric("Polaridad promedio", f"{promedio_polaridad:.2f}")
         else:
             st.metric("Polaridad promedio", "N/A")
 
-    # Muestra la Subjetividad promedio (como porcentaje si quieres escalarla, si no, déjala tal cual)
     with cols[3]:
         if metrics_to_display_map["Subjetividad promedio"]:
             promedio_subjetividad = df_to_display[metrics_to_display_map["Subjetividad promedio"]].mean()
-            # La subjetividad va de 0 a 1. Se muestra como decimal.
             st.metric("Subjetividad promedio", f"{promedio_subjetividad:.2f}")
         else:
             st.metric("Subjetividad promedio", "N/A")
 
-    # Muestra el Conteo de llamadas
     with cols[4]:
-        conteo_llamadas = len(df_to_display) # El número de filas es el conteo de llamadas
+        conteo_llamadas = len(df_to_display)
         st.metric("Conteo llamadas", f"{conteo_llamadas}")
 
 # ===================================================
 # PASO 5: Función para gráfico de puntaje total por Agente
 # ===================================================
 def graficar_puntaje_total(df_to_graph):
-    st.markdown("### 🎯 Promedio por Categoría de Interacción")
+    st.markdown("### 🟢 Promedio por Categoría de Interacción")
 
-    # Columnas de categorías a evaluar
-    columnas_categoria = [
+    columnas = [
         "saludo_presentacion",
         "presentacion_compania",
         "politica_grabacion",
@@ -175,7 +157,6 @@ def graficar_puntaje_total(df_to_graph):
         "normativos"
     ]
 
-    # Diccionario de nombres legibles
     nombres_amigables = {
         "saludo_presentacion": "Saludo",
         "presentacion_compania": "Presentación",
@@ -186,188 +167,141 @@ def graficar_puntaje_total(df_to_graph):
         "normativos": "Normativos"
     }
 
-    # Verificar columnas válidas
-    columnas_validas = [col for col in columnas_categoria if col in df_to_graph.columns]
-
-    if not columnas_validas:
-        st.warning("⚠️ No se encontraron columnas válidas para graficar por categoría.")
-        return
-
-    # Calcular promedios
     promedios = {}
-    for col in columnas_validas:
-        if pd.api.types.is_numeric_dtype(df_to_graph[col]):
+    for col in columnas:
+        # Check if column exists and is numeric in the current filtered DataFrame
+        if col in df_to_graph.columns and pd.api.types.is_numeric_dtype(df_to_graph[col]):
             promedio = df_to_graph[col].mean()
             if not pd.isna(promedio):
-                promedios[col] = promedio
-        else:
-            st.warning(f"⚠️ La columna '{col}' no es numérica y fue omitida.")
+                promedios[nombres_amigables[col]] = promedio * 100
 
     if not promedios:
-        st.warning("⚠️ No hay datos válidos para graficar.")
+        st.info("No hay datos disponibles para graficar el promedio por categoría con los filtros actuales.")
         return
 
-    # Crear DataFrame para graficar
-    df_promedios = pd.DataFrame(list(promedios.items()), columns=["Categoría", "Promedio"])
-    df_promedios["Categoría"] = df_promedios["Categoría"].map(nombres_amigables)
-    df_promedios["Promedio"] = df_promedios["Promedio"] * 100  # Convertir a %
+    df_resultado = pd.DataFrame(list(promedios.items()), columns=["Categoría", "Promedio"])
 
-    # Gráfico
     fig = px.bar(
-        df_promedios.sort_values("Promedio", ascending=False),
+        df_resultado.sort_values("Promedio", ascending=False),
         x="Categoría",
         y="Promedio",
         text="Promedio",
         color="Promedio",
         color_continuous_scale="Greens",
-        title="Promedio por Categoría de Interacción (%)",
-        labels={"Promedio": "Promedio (%)", "Categoría": "Categoría"}
+        title="Promedio por Categoría (%)"
     )
     fig.update_traces(texttemplate='%{y:.1f}%', textposition='outside')
-    fig.update_layout(
-        height=500,
-        xaxis_tickangle=-45,
-        plot_bgcolor="white",
-        font=dict(family="Arial", size=14),
-        title_x=0.5
-    )
-
+    fig.update_layout(xaxis_tickangle=-45, height=500, title_x=0.5, plot_bgcolor="white")
     st.plotly_chart(fig, use_container_width=True)
+
 # ===================================================
 # Función para gráfico de polaridad por Agente
 # ===================================================
 def graficar_polaridad_asesor_total(df_to_graph):
     st.markdown("### 📊 Polaridad Promedio por Agente")
-    # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # Nombres de columna: 'Polarity'
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polarity' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de polaridad por Agente. Asegúrate de tener las columnas 'Agente' y 'Polarity'.")
         return
-    # Asegurarse de que la columna no esté vacía después de los filtros y sea numérica
-    # Nombres de columna: 'Polarity'
     if df_to_graph['Polarity'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
         st.warning("⚠️ La columna 'Polarity' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
         return
 
-    # Calcular el promedio de 'Polarity' por 'Agente'.
-    # Nombres de columna: 'Polarity'
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio de polaridad por Agente después de agrupar. Revisa tus filtros.")
         return
 
-    # Crear gráfico de barras
     fig = px.bar(
         df_agrupado_por_agente.sort_values("Polarity", ascending=False),
         x="Agente",
         y="Polarity",
         text="Polarity",
         color="Polarity",
-        color_continuous_scale="Greens", # La escala de color para el gráfico será verde
+        color_continuous_scale="Greens",
         title="Polaridad Promedio por Agente",
         labels={"Polarity": "Promedio de Polaridad", "Agente": "Agente"}
     )
 
-    # Formatear el texto y ajustar diseño
     fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
     fig.update_layout(
         height=600,
-        width=max(800, 50 * len(df_agrupado_por_agente)), # Aumenta el ancho según número de Agentes
+        width=max(800, 50 * len(df_agrupado_por_agente)),
         xaxis_tickangle=-45,
         plot_bgcolor="white",
         font=dict(family="Arial", size=14),
         title_x=0.5,
-        margin=dict(b=150) # Añade un margen inferior para las etiquetas de los Agentes
+        margin=dict(b=150)
     )
 
-    # Mostrar gráfico con scroll si es necesario
-    st.plotly_chart(fig, use_container_width=False) # use_container_width=False permite scroll horizontal
+    st.plotly_chart(fig, use_container_width=False)
 
 
 # ===================================================
-# PASO 6: Función para heatmap de métricas por Agente
+# PASO 6: Función para heatmap de métricas por Agente (Ajustada para ser una barra simple como el original parecía buscar)
 # ===================================================
 def graficar_asesores_metricas_heatmap(df_to_graph):
-    st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
-    # Verificar que el DataFrame no esté vacío y que contenga la columna 'Agente'
-    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
-        st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
+    st.markdown("### 💬 Polaridad, Subjetividad y Confianza")
+
+    columnas = {
+        "Polaridad": "Polarity",
+        "Subjetividad": "Subjectivity",
+        "Confianza": "Confianza"
+    }
+
+    promedios = {}
+    for nombre_legible, col in columnas.items():
+        if col in df_to_graph.columns and pd.api.types.is_numeric_dtype(df_to_graph[col]):
+            promedio = df_to_graph[col].mean()
+            if not pd.isna(promedio):
+                if nombre_legible == "Confianza":
+                    promedios[nombre_legible] = promedio * 100
+                else:
+                    promedios[nombre_legible] = promedio
+        else:
+            st.warning(f"⚠️ La columna '{col}' no se encontró o no es numérica en los datos filtrados para la gráfica '{nombre_legible}'.")
+
+
+    if not promedios:
+        st.info("No hay datos para graficar Polaridad, Subjetividad y Confianza con los filtros actuales.")
         return
 
-    # Definir **directamente** las columnas que deben estar en el heatmap (las de conteo)
-    # ¡NOMBRES DE COLUMNA DE CONTEO ACTUALIZADOS A LA ÚLTIMA LISTA PROPORCIONADA!
-    metric_cols = [
-        "Conteo_apertura",
-        "Conteo_presentacion_beneficio",
-        "Conteo_creacion_necesidad",
-        "Conteo_manejo_objeciones",
-        "Conteo_cierre",
-        "Conteo_confirmacion_bienvenida",
-        "Conteo_consejos_cierre"
-    ]
+    df_resultado = pd.DataFrame(list(promedios.items()), columns=["Métrica", "Promedio"])
 
-    # Filtrar solo las columnas que realmente existen en el DataFrame de entrada
-    existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
-
-    if not existing_metric_cols:
-        st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap en los datos. Asegúrate de que las columnas como 'Conteo_apertura' existan.")
-        return
-
-    # Verificar que TODAS las columnas de conteo requeridas existan y no estén completamente nulas
-    for col in existing_metric_cols:
-        if df_to_graph[col].isnull().all():
-            st.warning(f"⚠️ La columna '{col}' para el Heatmap contiene solo valores nulos después de aplicar los filtros. No se puede graficar el promedio para esta columna.")
-            existing_metric_cols.remove(col) # Quitar la columna si está completamente nula
-            continue
-        if not pd.api.types.is_numeric_dtype(df_to_graph[col]):
-            st.error(f"❌ La columna '{col}' no es numérica. Por favor, verifica el preprocesamiento de datos. Esto afectará el cálculo del heatmap.")
-            existing_metric_cols.remove(col) # Quitar la columna si no es numérica
-
-    if not existing_metric_cols: # Re-chequear si quedan columnas después de las validaciones
-        st.warning("⚠️ No quedan columnas válidas para el Heatmap después de la validación de datos.")
-        return
-
-    # Usar 'Agente' para la agrupación y CALCULAR EL PROMEDIO de las métricas de conteo.
-    df_grouped = df_to_graph.groupby('Agente')[existing_metric_cols].mean().reset_index()
-
-    if df_grouped.empty:
-        st.warning("No hay datos para mostrar en el Heatmap después de agrupar por Agente.")
-        return
-
-    df_heatmap = df_grouped.set_index("Agente")[existing_metric_cols]
-
-    fig2 = px.imshow(
-        df_heatmap,
-        labels=dict(x="Métrica", y="Agente", color="Valor promedio"), # Etiqueta y actualizada para indicar promedio
-        color_continuous_scale='Greens',
-        aspect="auto",
-        title="Heatmap: Agente vs. Métricas de Conteo (Promedio)" # Título actualizado
+    fig = px.bar(
+        df_resultado.sort_values("Promedio", ascending=False),
+        x="Métrica",
+        y="Promedio",
+        text="Promedio",
+        color="Promedio",
+        color_continuous_scale="Blues",
+        title="Promedios de Polaridad, Subjetividad y Confianza"
     )
-    fig2.update_layout(
-        font=dict(family="Arial", size=12),
-        height=700,
-        title_x=0.5,
-        plot_bgcolor='white'
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+
+    def format_text(row):
+        if row["Métrica"] == "Confianza":
+            return f'{row["Promedio"]:.1f}%'
+        else:
+            return f'{row["Promedio"]:.2f}'
+
+    fig.update_traces(texttemplate=[format_text(row) for _, row in df_resultado.iterrows()], textposition='outside')
+
+    fig.update_layout(xaxis_tickangle=-45, height=400, title_x=0.5, plot_bgcolor="white")
+    st.plotly_chart(fig, use_container_width=True)
+
 
 # ===================================================
 # PASO 7: Función para indicadores tipo gauge
 # ===================================================
 def graficar_polaridad_subjetividad_gauges(df_to_graph):
-    # Verificar si hay datos antes de intentar calcular promedios
     if df_to_graph is None or df_to_graph.empty:
         st.info("No hay datos para mostrar los indicadores de polaridad y subjetividad con los filtros actuales.")
         return
 
-    # Creamos las columnas para organizar los gauges uno al lado del otro
     col1, col2 = st.columns(2)
 
-    # --- Gauge de Polaridad ---
     with col1:
         st.subheader("🔍 Polaridad Promedio General")
-        # Nombres de columna: 'Polarity'
         if 'Polarity' in df_to_graph.columns and not df_to_graph['Polarity'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
             polaridad_total = df_to_graph['Polarity'].mean()
 
@@ -391,7 +325,6 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
                 },
                 title={'text': "Polaridad Promedio General"}
             ))
-
             fig_gauge.update_layout(
                 font=dict(family="Arial", size=16),
                 width=400,
@@ -401,10 +334,8 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
         else:
             st.info("No hay datos de 'Polarity' para mostrar el indicador de Polaridad o la columna no es numérica.")
 
-    # --- Gauge de Subjetividad ---
     with col2:
         st.subheader("🔍 Subjectividad Promedio General")
-        # Nombres de columna: 'Subjectivity'
         if 'Subjectivity' in df_to_graph.columns and not df_to_graph['Subjectivity'].isnull().all() and pd.api.types.is_numeric_dtype(df_to_graph['Subjectivity']):
             subjectividad_total = df_to_graph['Subjectivity'].mean()
 
@@ -428,7 +359,6 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
                 },
                 title={'text': "Subjectividad Promedio General"}
             ))
-
             fig_gauge2.update_layout(
                 font=dict(family="Arial", size=16),
                 width=400,
@@ -442,291 +372,138 @@ def graficar_polaridad_subjetividad_gauges(df_to_graph):
 # PASO 8: Función para mostrar burbujas
 # ===================================================
 def graficar_polaridad_confianza_asesor_burbujas(df_to_graph):
-    st.markdown("### 📈 Polaridad Promedio vs. Confianza Promedio por Agente")
-    # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # Nombres de columna: 'Polarity', 'Subjectivity', 'Confianza'
-    if df_to_graph is None or df_to_graph.empty or \
-       'Agente' not in df_to_graph.columns or \
-       'Polarity' not in df_to_graph.columns or \
-       'Confianza' not in df_to_graph.columns:
-        st.warning("⚠️ Datos incompletos para la gráfica de burbujas. Asegúrate de tener las columnas 'Agente', 'Polarity' y 'Confianza'.")
-        return
-    # Asegurarse de que las columnas no estén vacías después de los filtros y sean numéricas
-    # Nombres de columna: 'Polarity', 'Subjectivity', 'Confianza'
-    if df_to_graph['Polarity'].isnull().all() or df_to_graph['Confianza'].isnull().all() or \
-       not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']) or \
-       not pd.api.types.is_numeric_dtype(df_to_graph['Confianza']):
-        st.warning("⚠️ Las columnas 'Polarity' o 'Confianza' contienen solo valores nulos o no son numéricas después de aplicar los filtros. No se puede graficar el promedio.")
+    st.markdown("### 🎈 Polaridad vs. Confianza por Agente (Gráfico de Burbujas)")
+    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polarity' not in df_to_graph.columns or 'Confianza' not in df_to_graph.columns:
+        st.info("Faltan columnas ('Agente', 'Polarity', 'Confianza') o no hay datos para el gráfico de burbujas.")
         return
 
+    # Asegurarse de que las columnas sean numéricas antes de promediar
+    numeric_cols = ['Polarity', 'Confianza']
+    for col in numeric_cols:
+        if not pd.api.types.is_numeric_dtype(df_to_graph[col]):
+            st.warning(f"La columna '{col}' no es numérica. No se puede generar el gráfico de burbujas.")
+            return
 
-    # 1. Agrupar por 'Agente' y calcular promedios de polaridad y confianza
-    # 2. Contar el número de registros/llamadas por Agente
-    # Nombres de columna: 'Polarity'
-    df_agrupado_por_agente = df_to_graph.groupby('Agente').agg(
-        promedio_polaridad=('Polarity', 'mean'),
-        promedio_confianza=('Confianza', 'mean'),
-        numero_llamadas=('Agente', 'count') # Cuenta el número de filas por Agente
+    df_grouped = df_to_graph.groupby('Agente').agg(
+        Polarity_Mean=('Polarity', 'mean'),
+        Confianza_Mean=('Confianza', 'mean'),
+        Call_Count=('Agente', 'size') # Usar el tamaño del grupo como el tamaño de la burbuja
     ).reset_index()
 
-    if df_agrupado_por_agente.empty:
-        st.warning("⚠️ No hay datos para graficar la Polaridad Promedio vs. Confianza Promedio por Agente después de agrupar. Revisa tus filtros.")
+    if df_grouped.empty:
+        st.info("No hay datos para graficar las burbujas de Polaridad y Confianza por Agente después de agrupar.")
         return
 
-    # Crear el gráfico de burbujas
+    # Escalar confianza para mostrarla como porcentaje en el tooltip si es necesario
+    df_grouped['Confianza_Mean_Pct'] = df_grouped['Confianza_Mean'] * 100
+
     fig = px.scatter(
-        df_agrupado_por_agente,
-        x="promedio_polaridad",
-        y="promedio_confianza",
-        size="numero_llamadas", # El tamaño de la burbuja representa el número de llamadas
-        # Ya no usamos 'color="Agente"' aquí para un solo color uniforme
-        # Eliminamos 'color_continuous_scale' también, ya que no estamos usando una escala continua
+        df_grouped,
+        x="Confianza_Mean_Pct",
+        y="Polarity_Mean",
+        size="Call_Count",
+        color="Agente",
         hover_name="Agente",
-        hover_data={
-            "promedio_polaridad": ":.2f",
-            "promedio_confianza": ":.2f",
-            "numero_llamadas": True
-        },
+        size_max=60,
         title="Polaridad Promedio vs. Confianza Promedio por Agente",
         labels={
-            "promedio_polaridad": "Polaridad Promedio",
-            "promedio_confianza": "Confianza Promedio (%)",
-            "numero_llamadas": "Número de Llamadas"
+            "Confianza_Mean_Pct": "Confianza Promedio (%)",
+            "Polarity_Mean": "Polaridad Promedio",
+            "Call_Count": "Conteo de Llamadas"
         }
     )
 
-    # >>> ¡CORRECCIÓN CLAVE AQUÍ! <<<
-    # Establecer el color de las burbujas a un verde sólido y uniforme para TODAS.
-    fig.update_traces(marker=dict(color='green', line=dict(width=1, color='DarkSlateGrey')))
-    # Puedes usar un código hexadecimal específico si quieres un tono exacto de verde, por ejemplo:
-    # fig.update_traces(marker=dict(color='#31a354', line=dict(width=1, color='DarkSlateGrey')))
-
-
     fig.update_layout(
-        xaxis_title="Polaridad Promedio",
-        yaxis_title="Confianza Promedio (%)",
-        height=600,
+        xaxis_title="Confianza Promedio (%)",
+        yaxis_title="Polaridad Promedio",
         plot_bgcolor="white",
-        font=dict(family="Arial", size=14),
         title_x=0.5
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# ===================================================
-# PASO 9: Función para mostrar acordeones por Agente
-# ===================================================
-def mostrar_acordeones(df_to_display):
-    st.markdown("### 🔍 Detalle Completo por Agente") # Título ajustado a 'Agente'
-    if df_to_display is None or df_to_display.empty:
-        st.warning("⚠️ El DataFrame está vacío o no fue cargado correctamente.")
-        return
-    # COLUMNA: 'Agente'
-    if 'Agente' not in df_to_display.columns:
-        st.error("❌ El DataFrame no contiene la columna 'Agente'.")
-        return
-
-    # Asegurar que la columna 'Agente' sea de tipo string.
-    df_to_display['Agente'] = df_to_display['Agente'].astype(str)
-    unique_agentes = df_to_display['Agente'].dropna().unique()
-
-    if unique_agentes.size == 0:
-        st.info("No hay agentes disponibles para mostrar en los acordeones con los filtros actuales.")
-        return
-
-    # Columnas a excluir, ajustadas a los nombres exactos de tu DataFrame
-    cols_to_exclude_from_accordion = [
-        "Identificador único",
-        "Telefono",
-        "Puntaje_Total_%",
-        "Polarity",
-        "Subjectivity",
-        "Confianza",
-        "Palabras",
-        "Oraciones",
-        "asesor_corto", # Se mantiene si existe, si no, no genera error
-        "fecha_convertida",
-        "NombreAudios",
-        "NombreAudios_Normalizado",
-        "Coincidencia_Excel",
-        "Archivo_Vacio",
-        "Estado_Llamada",
-        "Sentimiento",
-        "Direccion grabacion",
-        "Evento",
-        "Nombre de Opción",
-        "Codigo Entrante",
-        "Troncal",
-        "Grupo de Colas",
-        "Cola", # ¡Esta columna está en tu lista!
-        "Contacto",
-        "Identificacion",
-        "Tiempo de Espera",
-        "Tiempo de Llamada",
-        "Posicion de Entrada",
-        "Tiempo de Timbrado",
-        "Comentario",
-        "audio"
-    ]
-
-    for nombre_agente in unique_agentes:
-        df_agente = df_to_display[df_to_display['Agente'] == nombre_agente]
-
-        if df_agente.empty:
-            continue
-
-        with st.expander(f"🧑 Detalle de: **{nombre_agente}** ({len(df_agente)} registros)"):
-            for index, row in df_agente.iterrows():
-                # COLUMNA: 'Archivo_Analizado' (asumo que esta columna existe en tu Excel final)
-                archivo = row.get("Archivo_Analizado", "Archivo desconocido")
-                st.write(f"📄 Analizando: **{archivo}**")
-
-                for col in df_agente.columns: # Iterar sobre las columnas del sub-DataFrame del agente
-                    # Asegurarse de que la columna no esté en la lista de exclusión o sea 'Agente'/'Archivo_Analizado'
-                    if col in cols_to_exclude_from_accordion or col in ['Agente', 'Archivo_Analizado']:
-                        continue
-
-                    valor = row.get(col, 'N/A')
-
-                    if pd.isna(valor) or valor == '' or valor is None: # Considerar también cadenas vacías o None como "sin dato"
-                        st.write(f"🔹 {col.replace('_', ' ').capitalize()}: N/A ❌ (sin dato)")
-                        continue
-
-                    cumple = '❌'
-                    if isinstance(valor, (int, float)):
-                        # Nombres de columna: 'Puntaje_Total_%', 'Conteo_...'
-                        if 'Puntaje_Total_%' in col: # La columna de puntaje total
-                            cumple = '✅' if valor >= 80 else '❌'
-                        # ¡CORRECCIÓN AQUÍ! Se mantiene la lógica 'Conteo_' ya que tus nuevas columnas de conteo la usan
-                        elif 'Conteo_' in col:
-                            cumple = '✅' if valor >= 1 else '❌'
-                        else: # Para otras métricas numéricas que simplemente existen (Polarity, Subjectivity, Confianza, Palabras, Oraciones)
-                            cumple = '✅'
-                    # Manejo de otros tipos de datos que no son numéricos pero tienen un valor
-                    else:
-                        cumple = '✅' # Si tiene un valor no nulo, se asume que 'cumple'
-
-
-                    st.write(f"🔹 {col.replace('_', ' ').capitalize()}: {valor} {cumple}")
-
-                # Línea divisoria entre cada registro de llamada dentro del acordeón de un agente
-                # Asegurarse de que no sea la última fila del grupo para no poner un separador al final
-                if len(df_agente) > 1 and index != df_agente.index[-1]:
-                    st.markdown("---")
 
 # ===================================================
-# PASO 10: Lógica principal de la aplicación (main)
+# PASO 10: Función principal de la aplicación Streamlit
 # ===================================================
 def main():
-    st.sidebar.header("Filtros de Datos")
+    df = load_and_preprocess_data()
 
-    # --- FILTRO POR FECHA ---
-    # Asegúrate de que 'Fecha' exista y tenga datos válidos antes de intentar crear el filtro de fechas.
-    if 'Fecha' in df.columns and not df['Fecha'].isnull().all():
-        # Convertir a fecha directamente para el rango min/max de la UI
-        temp_fecha_convertida_para_filtro = pd.to_datetime(df['Fecha'], errors='coerce').dropna()
+    # --- FILTROS EN EL SIDEBAR ---
+    st.sidebar.header("Filtros")
 
-        if not temp_fecha_convertida_para_filtro.empty:
-            min_date = temp_fecha_convertida_para_filtro.min().date()
-            max_date = temp_fecha_convertida_para_filtro.max().date()
-
-            date_range = st.sidebar.date_input(
-                "Selecciona rango de fechas:",
-                value=(min_date, max_date),
-                min_value=min_date,
-                max_value=max_date
-            )
-
-            df_filtrado_fecha = df.copy() # Start with a copy
-            # Asegurarse de que date_range sea una tupla de dos elementos para el filtro
-            if len(date_range) == 2:
-                start_date, end_date = date_range
-                df_filtrado_fecha = df_filtrado_fecha[
-                    (df_filtrado_fecha['fecha_convertida'].dt.date >= start_date) &
-                    (df_filtrado_fecha['fecha_convertida'].dt.date <= end_date)
-                ].copy() # Asegurar copia después del filtro
-            elif len(date_range) == 1: # Si solo se selecciona una fecha
-                start_date = date_range[0]
-                df_filtrado_fecha = df_filtrado_fecha[
-                    (df_filtrado_fecha['fecha_convertida'].dt.date >= start_date)
-                ].copy() # Asegurar copia
-            else: # Si no se selecciona nada, usar el DataFrame completo (ya es una copia)
-                pass
-        else:
-            st.sidebar.warning("⚠️ No hay fechas válidas en los datos para mostrar el filtro de fecha.")
-            df_filtrado_fecha = df.copy() # Si no hay fechas válidas, no se filtra por fecha
+    # Filtro por Agente
+    if 'Agente' in df.columns:
+        agentes = sorted(df['Agente'].unique())
+        selected_agentes = st.sidebar.multiselect("Seleccionar Agente(s)", agentes, default=agentes)
     else:
-        st.sidebar.warning("❌ La columna 'Fecha' no existe o está vacía. No se podrá filtrar por fecha.")
-        df_filtrado_fecha = df.copy() # Si no hay columna 'Fecha', se pasa el DF completo
+        selected_agentes = []
+        st.sidebar.warning("La columna 'Agente' no está disponible para filtrar.")
 
-    st.sidebar.markdown("---") # Separador visual para el filtro de agente
+    # Filtro por Rango de Fechas
+    df_filtered_by_date = df.copy() # Inicializar con el df completo
+    if 'fecha_convertida' in df.columns and not df['fecha_convertida'].isnull().all():
+        min_date = df['fecha_convertida'].min().date()
+        max_date = df['fecha_convertida'].max().date()
 
-    # --- FILTRO POR AGENTE ---
-    # Verificar si 'Agente' existe y no está completamente vacío antes de intentar obtener únicos.
-    if 'Agente' in df_filtrado_fecha.columns and not df_filtrado_fecha['Agente'].dropna().empty:
-        # Asegurarse de que la columna 'Agente' sea de tipo string antes de obtener únicos
-        df_filtrado_fecha['Agente'] = df_filtrado_fecha['Agente'].astype(str)
-        all_agents = sorted(df_filtrado_fecha['Agente'].dropna().unique().tolist())
-        selected_agents = st.sidebar.multiselect(
-            "👤 Selecciona Agentes:",
-            options=all_agents,
-            default=all_agents # Selecciona todos por defecto
+        date_range = st.sidebar.date_input(
+            "Seleccionar rango de fechas",
+            value=(min_date, max_date),
+            min_value=min_date,
+            max_value=max_date
         )
 
-        if selected_agents:
-            df_final = df_filtrado_fecha[df_filtrado_fecha['Agente'].isin(selected_agents)].copy()
-        else:
-            st.warning("Por favor, selecciona al menos un agente para ver los datos.")
-            df_final = pd.DataFrame() # Vaciar DataFrame si no hay agentes seleccionados
+        if len(date_range) == 2:
+            start_date = pd.Timestamp(date_range[0])
+            end_date = pd.Timestamp(date_range[1]) + pd.Timedelta(days=1, microseconds=-1) # Incluir todo el día final
+            df_filtered_by_date = df[(df['fecha_convertida'] >= start_date) & (df['fecha_convertida'] <= end_date)]
+        elif len(date_range) == 1:
+            start_date = pd.Timestamp(date_range[0])
+            end_date = pd.Timestamp(date_range[0]) + pd.Timedelta(days=1, microseconds=-1)
+            df_filtered_by_date = df[(df['fecha_convertida'] >= start_date) & (df['fecha_convertida'] <= end_date)]
     else:
-        st.sidebar.warning("❌ La columna 'Agente' no existe o está vacía después del filtro de fecha. No se podrá filtrar por agente.")
-        df_final = df_filtrado_fecha.copy() # Si no hay columna 'Agente', se pasa el DF filtrado por fecha
+        st.sidebar.warning("La columna 'Fecha' no está disponible o no tiene fechas válidas para filtrar.")
 
-    st.sidebar.markdown("---")
+    # Aplicar filtros
+    if selected_agentes:
+        df_final = df_filtered_by_date[df_filtered_by_date['Agente'].isin(selected_agentes)].copy()
+    else:
+        df_final = df_filtered_by_date.copy()
 
-    # --- Mostrar datos filtrados si existen ---
     if df_final.empty:
-        st.info("No hay datos disponibles con los filtros aplicados. Ajusta tus selecciones.")
-        return # Detiene la ejecución de las funciones de graficación y resumen
+        st.warning("No hay datos que coincidan con los filtros seleccionados.")
+        return # Detener la ejecución si no hay datos
 
     # ===================================================
     # PASO 11: Ejecución de las funciones de visualización con datos filtrados
     # ===================================================
 
-    # Título principal del dashboard
     st.title("📞 Dashboard de Análisis de Llamadas")
 
-    # Mostrar métricas resumen
     display_summary_metrics(df_final)
 
-    st.markdown("---") # Separador visual
+    st.markdown("---")
 
-    # Mostrar el gráfico de puntaje total por categoría
     graficar_puntaje_total(df_final)
 
     st.markdown("---")
 
-    # Mostrar gráfico de polaridad por asesor
     graficar_polaridad_asesor_total(df_final)
 
     st.markdown("---")
 
-    # Mostrar heatmap de métricas por agente
     graficar_asesores_metricas_heatmap(df_final)
 
     st.markdown("---")
 
-    # Mostrar gauges de polaridad y subjetividad
     graficar_polaridad_subjetividad_gauges(df_final)
 
     st.markdown("---")
 
-    # Mostrar gráfico de burbujas
     graficar_polaridad_confianza_asesor_burbujas(df_final)
 
     st.markdown("---")
 
-    # Mostrar acordeones de detalle por agente
-    mostrar_acordeones(df_final)
+    # Eliminada la llamada a mostrar_acordeones(df_final)
 
 # ===================================================
 # Ejecución de la aplicación

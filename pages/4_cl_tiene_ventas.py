@@ -162,7 +162,7 @@ def display_summary_metrics(df_to_display):
 # PASO 5: Función para gráfico de puntaje total por Agente
 # ===================================================
 def graficar_puntaje_total(df_to_graph):
-     st.markdown("### 🎯 Promedio por Categoría de Interacción")
+    st.markdown("### 🎯 Promedio por Categoría de Interacción")
 
     # Columnas de categorías a evaluar
     columnas_categoria = [
@@ -671,57 +671,65 @@ def main():
             options=all_agents,
             default=all_agents # Selecciona todos por defecto
         )
-        # Aplicar filtro de agente
+
         if selected_agents:
-            df_final_filtered = df_filtrado_fecha[df_filtrado_fecha['Agente'].isin(selected_agents)].copy()
+            df_final = df_filtrado_fecha[df_filtrado_fecha['Agente'].isin(selected_agents)].copy()
         else:
             st.warning("Por favor, selecciona al menos un agente para ver los datos.")
-            df_final_filtered = pd.DataFrame() # DataFrame vacío si no hay agentes seleccionados
+            df_final = pd.DataFrame() # Vaciar DataFrame si no hay agentes seleccionados
     else:
-        st.sidebar.warning("❌ La columna 'Agente' no existe o está vacía en los datos filtrados por fecha. No se podrá filtrar por Agente.")
-        df_final_filtered = df_filtrado_fecha.copy() # Continúa con el DataFrame filtrado por fecha si no hay columna de agente
+        st.sidebar.warning("❌ La columna 'Agente' no existe o está vacía después del filtro de fecha. No se podrá filtrar por agente.")
+        df_final = df_filtrado_fecha.copy() # Si no hay columna 'Agente', se pasa el DF filtrado por fecha
 
-    st.sidebar.markdown("---") # Separador final para los filtros
+    st.sidebar.markdown("---")
 
+    # --- Mostrar datos filtrados si existen ---
+    if df_final.empty:
+        st.info("No hay datos disponibles con los filtros aplicados. Ajusta tus selecciones.")
+        return # Detiene la ejecución de las funciones de graficación y resumen
 
     # ===================================================
-    # PASO 11: Mostrar gráficos y métricas
+    # PASO 11: Ejecución de las funciones de visualización con datos filtrados
     # ===================================================
 
-    st.title("📊 Dashboard de Análisis de Interacciones")
-    st.markdown("Bienvenido al dashboard de análisis de interacciones con clientes. Utiliza los filtros para explorar los datos.")
+    # Título principal del dashboard
+    st.title("📞 Dashboard de Análisis de Llamadas")
 
-    if df_final_filtered.empty:
-        st.warning("🚨 ¡Atención! No hay datos para mostrar con los filtros seleccionados. Ajusta tus selecciones.")
-        return
+    # Mostrar métricas resumen
+    display_summary_metrics(df_final)
 
-    # Muestra las métricas resumen
-    display_summary_metrics(df_final_filtered)
+    st.markdown("---") # Separador visual
+
+    # Mostrar el gráfico de puntaje total por categoría
+    graficar_puntaje_total(df_final)
+
     st.markdown("---")
 
-    st.header("📈 Gráficos Resumen")
+    # Mostrar gráfico de polaridad por asesor
+    graficar_polaridad_asesor_total(df_final)
 
-    graficar_puntaje_total(df_final_filtered)
     st.markdown("---")
 
-    graficar_polaridad_asesor_total(df_final_filtered)
+    # Mostrar heatmap de métricas por agente
+    graficar_asesores_metricas_heatmap(df_final)
+
     st.markdown("---")
 
-    graficar_asesores_metricas_heatmap(df_final_filtered)
+    # Mostrar gauges de polaridad y subjetividad
+    graficar_polaridad_subjetividad_gauges(df_final)
+
     st.markdown("---")
 
-    graficar_polaridad_subjetividad_gauges(df_final_filtered)
+    # Mostrar gráfico de burbujas
+    graficar_polaridad_confianza_asesor_burbujas(df_final)
+
     st.markdown("---")
 
-    graficar_polaridad_confianza_asesor_burbujas(df_final_filtered)
-    st.markdown("---")
-
-    # ¡La función mostrar_acordeones está de vuelta aquí, con las columnas corregidas!
-    mostrar_acordeones(df_final_filtered)
-    st.markdown("---") # Añadir un separador final para el acordeón
+    # Mostrar acordeones de detalle por agente
+    mostrar_acordeones(df_final)
 
 # ===================================================
-# PASO 12: Punto de entrada de la app
+# Ejecución de la aplicación
 # ===================================================
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

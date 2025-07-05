@@ -17,7 +17,7 @@ st.set_page_config(layout="wide")
 # PASO 3: Carga y preprocesamiento del archivo principal
 # ===================================================
 carpeta_base = Path(__file__).parent.parent / "data"
-archivo_principal = carpeta_base / "estructura_completa_final (1)"
+archivo_principal = carpeta_base / "e.xlsx"
 
 try:
     df = pd.read_excel(archivo_principal)

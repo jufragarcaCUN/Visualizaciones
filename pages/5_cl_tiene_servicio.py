@@ -58,64 +58,6 @@ for col in numeric_cols_to_convert:
 # ===================================================
 # PASO 4: Función para mostrar métricas resumen
 # ===================================================
-def display_summary_metrics(df_to_display):
-    st.markdown("## 📋 Resumen General de Métricas")
-    metrics_to_display_map = {
-        "Puntaje promedio": "Puntaje_Total_%",
-        "Confianza promedio": "Confianza",
-        "Polaridad promedio": "Polarity",
-        "Subjetividad promedio": "Subjectivity",
-    }
-
-    for display_name, col_name in metrics_to_display_map.items():
-        if col_name is None:
-            continue
-        if col_name not in df_to_display.columns:
-            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos.")
-            metrics_to_display_map[display_name] = None
-            continue
-        if df_to_display[col_name].isnull().all():
-            st.warning(f"⚠️ La columna '{col_name}' para '{display_name}' contiene solo valores nulos.")
-            metrics_to_display_map[display_name] = None
-            continue
-        if not pd.api.types.is_numeric_dtype(df_to_display[col_name]):
-            st.error(f"❌ La columna '{col_name}' no es numérica.")
-            metrics_to_display_map[display_name] = None
-
-    cols = st.columns(5)
-
-    with cols[0]:
-        if metrics_to_display_map["Puntaje promedio"]:
-            promedio_puntaje = df_to_display[metrics_to_display_map["Puntaje promedio"]].mean()
-            st.metric("Puntaje promedio", f"{promedio_puntaje:.2f}%")
-        else:
-            st.metric("Puntaje promedio", "N/A")
-
-    with cols[1]:
-        if metrics_to_display_map["Confianza promedio"]:
-            promedio_confianza = df_to_display[metrics_to_display_map["Confianza promedio"]].mean()
-            st.metric("Confianza promedio", f"{promedio_confianza:.2f}%")
-        else:
-            st.metric("Confianza promedio", "N/A")
-
-    with cols[2]:
-        if metrics_to_display_map["Polaridad promedio"]:
-            promedio_polaridad = df_to_display[metrics_to_display_map["Polaridad promedio"]].mean()
-            st.metric("Polaridad promedio", f"{promedio_polaridad:.2f}")
-        else:
-            st.metric("Polaridad promedio", "N/A")
-
-    with cols[3]:
-        if metrics_to_display_map["Subjetividad promedio"]:
-            promedio_subjetividad = df_to_display[metrics_to_display_map["Subjetividad promedio"]].mean()
-            st.metric("Subjetividad promedio", f"{promedio_subjetividad:.2f}")
-        else:
-            st.metric("Subjetividad promedio", "N/A")
-
-    with cols[4]:
-        conteo_llamadas = len(df_to_display)
-        st.metric("Conteo llamadas", f"{conteo_llamadas}")
-
 # ===================================================
 # PASO 5: Gráficos fijos por Categoría y Métricas
 # ===================================================

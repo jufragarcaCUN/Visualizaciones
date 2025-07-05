@@ -24,7 +24,7 @@ try:
     st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
 except FileNotFoundError:
     st.error(f"❌ Error: El archivo no se encontró en la ruta especificada: **{archivo_principal}**")
-    st.warning(f"Asegúrate de que el archivo '{archivo_principal.name}' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).")
+    # st.warning(f"Asegúrate de que el archivo '{archivo_principal.name}' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).")
     st.stop()
 except Exception as e:
     st.error(f"❌ Error al cargar el archivo Excel: {e}")
@@ -35,7 +35,8 @@ print("Columnas en el DataFrame después de la carga:", df.columns.tolist())
 if 'Fecha' in df.columns:
     df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
     if df['fecha_convertida'].isnull().sum() > 0:
-        st.warning("Al reporte le hace falta actualizar la base de Junio y Julio")
+        # st.warning("Al reporte le hace falta actualizar la base de Junio y Julio")
+        pass # Mantener la estructura para evitar cambios en la indentación
 else:
     st.error("❌ La columna 'Fecha' no se encontró en el DataFrame. No se podrá filtrar por fecha.")
 
@@ -51,9 +52,11 @@ for col in numeric_cols_to_convert:
             df[col] = df[col].astype(str).str.replace('%', '', regex=False)
         df[col] = pd.to_numeric(df[col], errors='coerce')
         if df[col].isnull().sum() > 0:
-            st.warning(f"⚠️ Se encontraron {df[col].isnull().sum()} valores no numéricos en la columna '{col}' después de la conversión.")
+            # st.warning(f"⚠️ Se encontraron {df[col].isnull().sum()} valores no numéricos en la columna '{col}' después de la conversión.")
+            pass # Mantener la estructura para evitar cambios en la indentación
     else:
-        st.warning(f"⚠️ La columna '{col}' esperada para conversión numérica no se encontró en los datos.")
+        # st.warning(f"⚠️ La columna '{col}' esperada para conversión numérica no se encontró en los datos.")
+        pass # Mantener la estructura para evitar cambios en la indentación
 
 # ===================================================
 # PASO 4: Función para mostrar métricas resumen
@@ -71,11 +74,11 @@ def display_summary_metrics(df_to_display):
         if col_name is None:
             continue
         if col_name not in df_to_display.columns:
-            st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos.")
+            # st.warning(f"⚠️ La columna '{col_name}' necesaria para '{display_name}' no se encontró en los datos.")
             metrics_to_display_map[display_name] = None
             continue
         if df_to_display[col_name].isnull().all():
-            st.warning(f"⚠️ La columna '{col_name}' para '{display_name}' contiene solo valores nulos.")
+            # st.warning(f"⚠️ La columna '{col_name}' para '{display_name}' contiene solo valores nulos.")
             metrics_to_display_map[display_name] = None
             continue
         if not pd.api.types.is_numeric_dtype(df_to_display[col_name]):
@@ -159,4 +162,5 @@ st.plotly_chart(fig2, use_container_width=True)
 # PASO 12: Punto de entrada de la app
 # ===================================================
 if __name__ == '__main__':
-    st.warning("⚠️ Función 'main()' deshabilitada temporalmente por limpieza de funciones faltantes.")
+    # st.warning("⚠️ Función 'main()' deshabilitada temporalmente por limpieza de funciones faltantes.")
+    pass # Mantener la estructura para evitar cambios en la indentación

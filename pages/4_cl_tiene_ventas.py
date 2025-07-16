@@ -48,16 +48,16 @@ except Exception as e:
 
 # --- SECCIÓN CRÍTICA DE DEBUGGING DE COLUMNAS ---
 # ¡ESTO SE IMPRIMIRÁ EN LA CONSOLA (TERMINAL) DONDE EJECUTAS STREAMLIT RUN!
-print("\n--- NOMBRES DE COLUMNAS DETECTADOS EN CONSOLA (TERMINAL) ---")
-print(df.columns.tolist())
-print("-----------------------------------------------------------\n")
+#print("\n--- NOMBRES DE COLUMNAS DETECTADOS EN CONSOLA (TERMINAL) ---")
+#print(df.columns.tolist())
+#print("-----------------------------------------------------------\n")
 
 # Esto se imprimirá en la barra lateral de Streamlit (si el df no está vacío)
-st.sidebar.markdown("---")
-st.sidebar.subheader("Nombres de columnas detectados en tu Excel:")
-for col in df.columns:
-    st.sidebar.write(f"- `{col}`")
-st.sidebar.markdown("---")
+#st.sidebar.markdown("---")
+#st.sidebar.subheader("Nombres de columnas detectados en tu Excel:")
+#for col in df.columns:
+    #st.sidebar.write(f"- `{col}`")
+#st.sidebar.markdown("---")
 # -------------------------------------------------
 
 # Preprocesamiento inicial (fuera de cualquier filtro dinámico)
@@ -252,7 +252,7 @@ def display_summary_metrics(df_to_display):
         if "Polaridad promedio" in validated_metrics_map and validated_metrics_map["Polaridad promedio"]:
             # --- DEBUGGING ESPECÍFICO PARA POLARIDAD ---
             print(f"DEBUG: Valor de validated_metrics_map['Polaridad promedio']: {validated_metrics_map['Polaridad promedio']}")
-            print(f"DEBUG: Columnas de df_to_display en este punto: {df_to_display.columns.tolist()}")
+            #print(f"DEBUG: Columnas de df_to_display en este punto: {df_to_display.columns.tolist()}")
             # ------------------------------------------
             promedio_polaridad = df_to_display[validated_metrics_map["Polaridad promedio"]].mean()
             st.metric("Polaridad promedio", f"{promedio_polaridad:.2f}")

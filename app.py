@@ -60,7 +60,7 @@ st.markdown(
             font-family: 'Montserrat', sans-serif;
             font-size: 2rem !important; /* más grande que antes */
             font-weight: 900;
-            color: #31A354;
+            color: #FFFFFF;;
             text-align: center;
             margin: 0;
             padding: 0 50px;

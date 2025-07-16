@@ -58,7 +58,7 @@ st.markdown(
 
 .main-title {{
             font-family: 'Montserrat', sans-serif;
-            font-size: 7rem !important; /* más grande que antes */
+            font-size: 2rem !important; /* más grande que antes */
             font-weight: 900;
             color: #31A354;
             text-align: center;

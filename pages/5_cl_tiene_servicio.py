@@ -17,28 +17,36 @@ st.set_page_config(layout="wide")
 # ===================================================
 # PASO 3: Carga y preprocesamiento del archivo principal
 # ===================================================
-# Definir la ruta base donde se encuentra el archivo de datos.
-# __file__ es el archivo actual, .parent es la carpeta que lo contiene.
-# Asumo que 'data' está un nivel arriba de la carpeta donde se ejecuta este script.
-# Si tu estructura es diferente, ajusta esta línea.
-# Ejemplo: si el Excel está en la misma carpeta que el script, sería: carpeta_base = Path(__file__).parent
-carpeta_base = Path(__file__).parent.parent / "data"
 
-# Construir la ruta completa al archivo Excel principal.
-# Asegúrate de que el nombre del archivo sea el correcto que genera tu script de análisis.
-archivo_principal = carpeta_base / "final_servicio_cltiene.xlsx"
+from pathlib import Path
+import pandas as pd
+import streamlit as st
 
-# Cargar el archivo Excel en un DataFrame de pandas.
+# Definir la ruta base del proyecto (sube desde /pages hasta la raíz del proyecto)
+carpeta_base = Path(__file__).resolve().parent.parent
+
+# Ruta completa al archivo Excel dentro de la carpeta 'data'
+archivo_principal = carpeta_base / "data" / "final_servicio_cltiene.xlsx"
+
+# Validar si es un archivo temporal de Excel (~$)
+if archivo_principal.name.startswith("~$"):
+    st.error("❌ El archivo detectado es un archivo temporal de Excel (~$...). Cierra Excel y asegúrate de que el archivo real esté disponible.")
+    st.stop()
+
+# Validar existencia del archivo
+if not archivo_principal.exists():
+    st.error(f"❌ Error: No se encontró el archivo en la ruta: {archivo_principal}")
+    st.warning("📂 Asegúrate de que 'final_servicio_cltiene.xlsx' esté dentro de la carpeta 'data' en la raíz del proyecto.")
+    st.stop()
+
+# Intentar cargar el archivo Excel
 try:
     df = pd.read_excel(archivo_principal)
-    st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
-except FileNotFoundError:
-    st.error(f"❌ Error: El archivo no se encontró en la ruta especificada: **{archivo_principal}**")
-    st.warning(f"Asegúrate de que el archivo '{archivo_principal.name}' esté en la carpeta 'data' (relativa a la ubicación de tu script del dashboard).") # Mensaje de advertencia actualizado
-    st.stop() # Detiene la ejecución de la aplicación si el archivo no se encuentra.
+    #st.success(f"✅ Archivo '{archivo_principal.name}' cargado correctamente.")
 except Exception as e:
     st.error(f"❌ Error al cargar el archivo Excel: {e}")
-    st.stop() # Detiene la ejecución en caso de otro error de carga.
+    st.stop()
+
 
 
 # --- LÍNEA CLAVE PARA DEPURACIÓN ---
@@ -52,7 +60,7 @@ if 'Fecha' in df.columns:
     df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
     # Aviso si hay muchas fechas nulas después de la conversión
     if df['fecha_convertida'].isnull().sum() > 0:
-        st.warning("Hace falta cargar el Data Frame de Junio y Julio")
+        st.warning("")
 else:
     st.error("❌ La columna 'Fecha' no se encontró en el DataFrame. No se podrá filtrar por fecha.")
 
@@ -161,24 +169,30 @@ def display_summary_metrics(df_to_display):
 # ===================================================
 # PASO 5: Función para gráfico de puntaje total por Agente
 # ===================================================
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
 def graficar_puntaje_total(df_to_graph):
-    st.markdown("### 🎯 Promedio Total por Agente")
-    # Nombres de columnas actualizados
+    st.markdown("### 🎯 Promedio Total por Agente", unsafe_allow_html=True)
+
+    # Validación de columnas requeridas
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Puntaje_Total_%' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de puntaje total. Asegúrate de tener las columnas 'Agente' y 'Puntaje_Total_%'.")
         return
-    # Asegurarse de que la columna no esté vacía después de los filtros y sea numérica
+
     if df_to_graph['Puntaje_Total_%'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Puntaje_Total_%']):
-        st.warning("⚠️ La columna 'Puntaje_Total_%' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
+        st.warning("⚠️ La columna 'Puntaje_Total_%' contiene solo valores nulos o no es numérica después de aplicar los filtros.")
         return
 
-    # Calcular el promedio de 'Puntaje_Total_%' por 'Agente'.
+    # Agrupación por agente
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Puntaje_Total_%'].mean().reset_index()
 
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio total por Agente después de agrupar. Revisa tus filtros.")
         return
 
+    # Gráfico de barras con Plotly
     fig = px.bar(
         df_agrupado_por_agente.sort_values("Puntaje_Total_%", ascending=False),
         x="Agente",
@@ -189,135 +203,127 @@ def graficar_puntaje_total(df_to_graph):
         title="Promedio Total por Agente",
         labels={"Puntaje_Total_%": "Promedio de Puntaje (%)", "Agente": "Agente"}
     )
+
     fig.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
     fig.update_layout(
         height=600,
         xaxis_tickangle=-45,
         plot_bgcolor="white",
         font=dict(family="Arial", size=14),
-        title_x=0.5
+        title_x=0.5,
+        margin=dict(l=40, r=40, t=80, b=40)
     )
-    st.plotly_chart(fig, use_container_width=True)
+
+    # Centrar usando columnas en Streamlit
+    col1, col2, col3 = st.columns([1, 5, 1])
+    with col2:
+        st.plotly_chart(fig, use_container_width=True)
+
 
 # ===================================================
 # Función para gráfico de polaridad por Agente
 # ===================================================
 def graficar_polaridad_asesor_total(df_to_graph):
     st.markdown("### 📊 Polaridad Promedio por Agente")
-    # Verificar si las columnas necesarias existen en el DataFrame (nombres actualizados)
-    # Nombres de columna: 'Polarity'
+
     if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns or 'Polarity' not in df_to_graph.columns:
         st.warning("⚠️ Datos incompletos para la gráfica de polaridad por Agente. Asegúrate de tener las columnas 'Agente' y 'Polarity'.")
         return
-    # Asegurarse de que la columna no esté vacía después de los filtros y sea numérica
-    # Nombres de columna: 'Polarity'
+
     if df_to_graph['Polarity'].isnull().all() or not pd.api.types.is_numeric_dtype(df_to_graph['Polarity']):
         st.warning("⚠️ La columna 'Polarity' contiene solo valores nulos o no es numérica después de aplicar los filtros. No se puede graficar el promedio.")
         return
 
-    # Calcular el promedio de 'Polarity' por 'Agente'.
-    # Nombres de columna: 'Polarity'
     df_agrupado_por_agente = df_to_graph.groupby('Agente')['Polarity'].mean().reset_index()
 
     if df_agrupado_por_agente.empty:
         st.warning("⚠️ No hay datos para graficar el promedio de polaridad por Agente después de agrupar. Revisa tus filtros.")
         return
 
-    # Crear gráfico de barras
     fig = px.bar(
         df_agrupado_por_agente.sort_values("Polarity", ascending=False),
         x="Agente",
         y="Polarity",
         text="Polarity",
         color="Polarity",
-        color_continuous_scale="Greens", # La escala de color para el gráfico será verde
+        color_continuous_scale="Greens",
         title="Polaridad Promedio por Agente",
         labels={"Polarity": "Promedio de Polaridad", "Agente": "Agente"}
     )
 
-    # Formatear el texto y ajustar diseño
     fig.update_traces(texttemplate='%{y:.2f}', textposition='outside')
     fig.update_layout(
         height=600,
-        width=max(800, 50 * len(df_agrupado_por_agente)), # Aumenta el ancho según número de Agentes
+        width=max(800, 50 * len(df_agrupado_por_agente)),
         xaxis_tickangle=-45,
         plot_bgcolor="white",
         font=dict(family="Arial", size=14),
         title_x=0.5,
-        margin=dict(b=150) # Añade un margen inferior para las etiquetas de los Agentes
+        margin=dict(b=150)
     )
 
-    # Mostrar gráfico con scroll si es necesario
-    st.plotly_chart(fig, use_container_width=False) # use_container_width=False permite scroll horizontal
-
+    # 🔵 Centrado visual del gráfico
+    col1, col2, col3 = st.columns([1, 5, 1])
+    with col2:
+        st.plotly_chart(fig, use_container_width=False)
 
 # ===================================================
 # PASO 6: Función para heatmap de métricas por Agente
 # ===================================================
-#def graficar_asesores_metricas_heatmap(df_to_graph):
- #   st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
-    # Verificar que el DataFrame no esté vacío y que contenga la columna 'Agente'
-  #  if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
-   #     st.warning("Datos incompletos para el Heatmap. Se requiere un DataFrame con la columna 'Agente'.")
-    #    return
+def graficar_asesores_metricas_heatmap(df_to_graph):
+    st.markdown("### 🗺️ Heatmap: Agente vs. Métricas de Conteo (Promedio)")
 
-    # Definir **directamente** las columnas que deben estar en el heatmap (las de conteo)
-    # ¡NOMBRES DE COLUMNA DE CONTEO ACTUALIZADOS A LA ÚLTIMA LISTA PROPORCIONADA!
-    #metric_cols = [
-     #   "Conteo_apertura",
-      #  "Conteo_presentacion_beneficio",
-       # "Conteo_creacion_necesidad",
-        #"Conteo_manejo_objeciones",
-        #"Conteo_cierre",
-        #"Conteo_confirmacion_bienvenida",
-        #"Conteo_consejos_cierre"
-    #]
+    if df_to_graph is None or df_to_graph.empty or 'Agente' not in df_to_graph.columns:
+        return
 
-    # Filtrar solo las columnas que realmente existen en el DataFrame de entrada
-    #existing_metric_cols = [col for col in metric_cols if col in df_to_graph.columns]
+    metric_cols = [
+        "Conteo_saludo_inicial",
+        "Conteo_identificacion_cliente",
+        "Conteo_comprension_problema",
+        "Conteo_ofrecimiento_solucion",
+        "Conteo_manejo_inquietudes",
+        "Conteo_cierre_servicio",
+        "Conteo_proximo_paso"
+    ]
 
-    #if not existing_metric_cols:
-       # st.warning("⚠️ No se encontraron columnas de conteo válidas para el Heatmap en los datos. Asegúrate de que las columnas como 'Conteo_apertura' existan.")
-        #return
+    existing_metric_cols = []
+    for col in metric_cols:
+        if col in df_to_graph.columns:
+            if df_to_graph[col].isnull().all():
+                continue
+            if not pd.api.types.is_numeric_dtype(df_to_graph[col]):
+                continue
+            existing_metric_cols.append(col)
 
-    # Verificar que TODAS las columnas de conteo requeridas existan y no estén completamente nulas
-    #for col in existing_metric_cols:
-     #   if df_to_graph[col].isnull().all():
-      #      st.warning(f"⚠️ La columna '{col}' para el Heatmap contiene solo valores nulos después de aplicar los filtros. No se puede graficar el promedio para esta columna.")
-       #     existing_metric_cols.remove(col) # Quitar la columna si está completamente nula
-        #    continue
-       # if not pd.api.types.is_numeric_dtype(df_to_graph[col]):
-        #    st.error(f"❌ La columna '{col}' no es numérica. Por favor, verifica el preprocesamiento de datos. Esto afectará el cálculo del heatmap.")
-         #   existing_metric_cols.remove(col) # Quitar la columna si no es numérica
+    if not existing_metric_cols:
+        return
 
-    #if not existing_metric_cols: # Re-chequear si quedan columnas después de las validaciones
-     #   st.warning("⚠️ No quedan columnas válidas para el Heatmap después de la validación de datos.")
-      #  return
+    df_grouped = df_to_graph.groupby('Agente')[existing_metric_cols].mean().reset_index()
 
-    # Usar 'Agente' para la agrupación y CALCULAR EL PROMEDIO de las métricas de conteo.
-    #df_grouped = df_to_graph.groupby('Agente')[existing_metric_cols].mean().reset_index()
+    if df_grouped.empty:
+        return
 
-    #if df_grouped.empty:
-     #   st.warning("No hay datos para mostrar en el Heatmap después de agrupar por Agente.")
-      #  return
+    df_heatmap = df_grouped.set_index("Agente")[existing_metric_cols]
 
-   # df_heatmap = df_grouped.set_index("Agente")[existing_metric_cols]
+    fig2 = px.imshow(
+        df_heatmap,
+        labels=dict(x="Métrica", y="Agente", color="Valor promedio"),
+        color_continuous_scale='Greens',
+        aspect="auto",
+        title="Heatmap: Agente vs. Métricas de Conteo (Promedio)"
+    )
 
-    #fig2 = px.imshow(
-     #   df_heatmap,
-      #  labels=dict(x="Métrica", y="Agente", color="Valor promedio"), # Etiqueta y actualizada para indicar promedio
-       # color_continuous_scale='Greens',
-        #aspect="auto",
-        #title="Heatmap: Agente vs. Métricas de Conteo (Promedio)" # Título actualizado
-    #)
-    #fig2.update_layout(
-     #   font=dict(family="Arial", size=12),
-      #  height=700,
-       # title_x=0.5,
-        #plot_bgcolor='white'
-    #)
-   # st.plotly_chart(fig2, use_container_width=True)
+    fig2.update_layout(
+        font=dict(family="Arial", size=12),
+        height=700,
+        title_x=0.5,
+        plot_bgcolor='white'
+    )
 
+    # 🔵 Centrado visual del gráfico
+    col1, col2, col3 = st.columns([1, 5, 1])
+    with col2:
+        st.plotly_chart(fig2, use_container_width=True)
 # ===================================================
 # PASO 7: Función para indicadores tipo gauge
 # ===================================================
@@ -672,9 +678,12 @@ def main():
 
     graficar_polaridad_asesor_total(df_final_filtered)
     st.markdown("---")
+    #Visualizaciones-main\Visualizaciones-main\pages\5_cl_tiene_servicio.py
+    #st.write("📌 DEBUG: Entrando a heatmap con", len(df_final_filtered), "filas")
+    #st.write("📌 Columnas del DataFrame en ese momento:", df_final_filtered.columns.tolist())
 
-   #graficar_asesores_metricas_heatmap(df_final_filtered)
-    #st.markdown("---")
+    graficar_asesores_metricas_heatmap(df_final_filtered)
+
 
     graficar_polaridad_subjetividad_gauges(df_final_filtered)
     st.markdown("---")

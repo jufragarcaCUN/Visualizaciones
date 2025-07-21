@@ -64,11 +64,18 @@ st.plotly_chart(fig1, use_container_width=True)
 
 # --- GRÁFICO 2: Polaridad por Agente ---
 st.subheader("📊 Polaridad por Agente")
-fig2 = px.bar(df.groupby("Agente")["Polarity"].mean().reset_index(),
-              x="Agente", y="Polarity", text="Polarity", color="Polarity")
+fig2 = px.bar(
+    df.groupby("Agente")["Polarity"].mean().reset_index(),
+    x="Agente",
+    y="Polarity",
+    text="Polarity",
+    color="Polarity",
+    color_continuous_scale="Greens"  # ⬅️ Verde aplicado
+)
 fig2.update_traces(texttemplate='%{y:.2f}', textposition='outside')
 fig2.update_layout(xaxis_tickangle=-45)
 st.plotly_chart(fig2, use_container_width=True)
+
 
 # --- HEATMAP ---
 st.subheader("🗺️ Heatmap de Métricas")

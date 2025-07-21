@@ -160,7 +160,7 @@ fig_bubble = px.scatter(
 fig_bubble.update_layout(
     plot_bgcolor="white",
     height=600,
-    xaxis=dict(title="Polaridad", range=[-1, 1]),   # ⬅️ Eje X desde -1
+    xaxis=dict(title="Polaridad", range=[-0.5, 0.5]),   # ⬅️ Rango X ajustado
     yaxis=dict(title="Confianza (%)", range=[-1, 1]) # ⬅️ Eje Y desde -1
 )
 

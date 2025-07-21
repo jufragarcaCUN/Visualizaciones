@@ -64,7 +64,7 @@ st.markdown(f"""
     }}
     [data-testid="stSidebar"] * {{
         font-size: 20px !important;
-        font-weight: 600;
+        font-weight: 100;
         color: #000 !important;
     }}
 </style>

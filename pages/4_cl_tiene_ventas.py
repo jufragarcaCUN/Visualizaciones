@@ -49,11 +49,18 @@ col5.metric("Total llamadas", len(df))
 
 # --- GRÁFICO 1: Puntaje por Agente ---
 st.subheader("🎯 Puntaje Total por Agente")
-fig1 = px.bar(df.groupby("Agente")["Puntaje_Total_%"].mean().reset_index(), 
-              x="Agente", y="Puntaje_Total_%", text="Puntaje_Total_%", color="Puntaje_Total_%")
+fig1 = px.bar(
+    df.groupby("Agente")["Puntaje_Total_%"].mean().reset_index(), 
+    x="Agente",
+    y="Puntaje_Total_%",
+    text="Puntaje_Total_%",
+    color="Puntaje_Total_%",
+    color_continuous_scale="Greens"  # ⬅️ Escala verde forzada
+)
 fig1.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
 fig1.update_layout(xaxis_tickangle=-45)
 st.plotly_chart(fig1, use_container_width=True)
+
 
 # --- GRÁFICO 2: Polaridad por Agente ---
 st.subheader("📊 Polaridad por Agente")

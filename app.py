@@ -44,7 +44,7 @@ st.markdown(f"""
     }}
     .image-container {{
         text-align: center;
-        padding: 10px;
+        padding: 50px;
     }}
     .logo-img {{
         max-width: 50px !important; /* ¡Modificación clave aquí! */

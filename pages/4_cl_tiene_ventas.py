@@ -148,11 +148,17 @@ fig_bubble = px.scatter(
     y="promedio_confianza",
     size="llamadas",
     hover_name="Agente",
+    color="promedio_polaridad",  # ⬅️ Añadido para aplicar color
+    color_continuous_scale="Greens",  # ⬅️ Escala verde forzada
     title="Polaridad vs Confianza",
-    labels={"promedio_polaridad": "Polaridad", "promedio_confianza": "Confianza (%)"}
+    labels={
+        "promedio_polaridad": "Polaridad",
+        "promedio_confianza": "Confianza (%)"
+    }
 )
 fig_bubble.update_layout(plot_bgcolor="white", height=600)
 st.plotly_chart(fig_bubble, use_container_width=True)
+
 
 # --- ACORDEONES POR AGENTE ---
 st.subheader("🧾 Detalle por Agente")

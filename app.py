@@ -47,7 +47,7 @@ st.markdown(f"""
         padding: 50px;
     }}
     .logo-img {{
-        max-width: 150px !important; /* ¡Modificación clave aquí! */
+        max-width: 600px !important; /* ¡Modificación clave aquí! */
         height: auto;
         border-radius: 15px;
         box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);

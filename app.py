@@ -47,7 +47,7 @@ st.markdown(f"""
         padding: 10px;
     }}
     .logo-img {{
-        max-width: 100px;
+        max-width: 50px; /* Imagen a la mitad */
         height: auto;
         border-radius: 15px;
         box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
@@ -66,17 +66,4 @@ st.markdown(f"""
         font-size: 20px !important;
         font-weight: 600;
         color: #000 !important;
-    }}
-</style>
-""", unsafe_allow_html=True)
-
-# ================== 4. CONTENIDO PRINCIPAL ==================
-st.markdown('<div class="main-title">DESEMPEÑO LLAMADA POR ASESOR</div>', unsafe_allow_html=True)
-
-if encoded_logo:
-    st.markdown(f"""
-        <div class="image-container">
-            <img src='data:image/png;base64,{encoded_logo}' class='logo-img'>
-        </div>
-    """, unsafe_allow_html=True)
-
+    }

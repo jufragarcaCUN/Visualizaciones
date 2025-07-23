@@ -104,7 +104,7 @@ if encoded_logo_coe:
             >
                 <img src='data:image/jpeg;base64,{encoded_logo_coe}'
                      style='width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px;' />
-                <div style='font-size: 18px; font-weight: bold; color: #007A33;'>¡Revisa los datos!</div>
+                #<div style='font-size: 18px; font-weight: bold; color: #007A33;'>¡Revisa los datos!</div>
             </div>
             """,
             unsafe_allow_html=True

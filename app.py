@@ -47,7 +47,7 @@ st.markdown(
             display: none !important;
         }}
         .stApp {{
-            background-color: #007A33; /* Color de fallback si la imagen no carga */
+            /* Se eliminó background-color: #007A33; para que la imagen de fondo sea la única visible */
             color: #ff;
             font-size: 16px;
             {'background-image: url(data:image/jpeg;base64,' + encoded_background_image + ');' if encoded_background_image else ''}

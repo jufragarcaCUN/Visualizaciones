@@ -6,25 +6,37 @@ from pathlib import Path
 import datetime
 
 st.set_page_config(layout="wide")
-# ===================================================
-# 5. Mostrar solo el segundo logo centrado (coe.jpeg)
-# ===================================================
-if encoded_logo2:
-    st.markdown(
-        f"""
-        <div style='text-align:center; margin-bottom: 30px;'>
-            <img src='data:image/jpeg;base64,{encoded_logo2}' class='logo-img'>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-else:
-    st.warning("⚠️ No se pudo cargar la imagen del logo.")
+
 
 
 # --- CARGA DE ARCHIVO ---
 archivo = Path(__file__).resolve().parent.parent / "data" / "Ventas se le tiene_hoy.xlsx"
 df = pd.read_excel(archivo)
+
+# ===================================================
+# 2. Rutas y carga de los logos
+# ===================================================
+current_dir = Path(__file__).parent
+logo_folder_name = "data"
+
+# Ruta de la imagen coe.jpeg
+logo_path2 = current_dir / logo_folder_name / "coe.jpeg"
+
+# Función para codificar la imagen
+def encode_image(path):
+    try:
+        with open(path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    except FileNotFoundError:
+        st.error(f"❌ No se encontró la imagen: {path}")
+        return ""
+    except Exception as e:
+        st.error(f"❌ Error al cargar imagen {path}: {e}")
+        return ""
+
+# Importar (cargar y codificar) la imagen coe.jpeg
+encoded_logo2 = encode_image(logo_path2)
+
 
 # --- PREPROCESAMIENTO ---
 df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
@@ -62,6 +74,23 @@ col2.metric("Confianza", f"{df['Confianza'].mean():.2f}%")
 col3.metric("Polaridad", f"{df['Polarity'].mean():.2f}")
 col4.metric("Subjetividad", f"{df['Subjectivity'].mean():.2f}")
 col5.metric("Total llamadas", len(df)) # Sin la coma al final
+with col6:
+    st.markdown(
+        f"""
+        <div style='
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);'
+        >
+            <img src='data:image/jpeg;base64,{encoded_logo2}' style='width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px;' />
+            <div style='font-size: 18px; font-weight: bold; color: #007A33;'>¡Revisa los datos!</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 # Asegúrate de que encoded_logo2 esté disponible antes
 if encoded_logo2:

@@ -121,7 +121,7 @@ st.markdown(
 # 5. Mostrar la imagen en una sola columna
 # ===================================================
 if encoded_logo1: # La condición ahora solo verifica el primer logo
-    col1 = st.columns(1) # Se define una sola columna
+    col1, = st.columns(1) # CORRECCIÓN: Desempaqueta la lista de columnas
     with col1:
         st.markdown(
             f"<div style='text-align:center;'><img src='data:image/png;base64,{encoded_logo1}' class='logo-img'></div>",

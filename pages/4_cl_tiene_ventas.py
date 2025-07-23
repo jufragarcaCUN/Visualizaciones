@@ -45,7 +45,7 @@ col1.metric("Puntaje promedio", f"{df['Puntaje_Total_%'].mean():.2f}%")
 col2.metric("Confianza", f"{df['Confianza'].mean():.2f}%")
 col3.metric("Polaridad", f"{df['Polarity'].mean():.2f}")
 col4.metric("Subjetividad", f"{df['Subjectivity'].mean():.2f}")
-col5.metric("Total llamadas", len(df))
+col5.metric("Total llamadas", len(df)),
 col5.metric("Total llamadas"123),
 
 # --- GRÁFICO 1: Puntaje por Agente ---

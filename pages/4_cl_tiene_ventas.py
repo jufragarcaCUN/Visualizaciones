@@ -21,7 +21,7 @@ df = pd.read_excel(archivo)
 current_dir = Path(__file__).parent
 logo_folder_name = "data"
 
-from pathlib import Path
+
 
 # Ruta correcta desde /pages al folder /data
 current_dir = Path(__file__).resolve().parent.parent

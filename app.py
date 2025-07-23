@@ -1,28 +1,3 @@
-import streamlit as st
-import base64
-from pathlib import Path
-
-# ================== 1. CONFIGURACIÓN DE PÁGINA ==================
-st.set_page_config(
-    page_title="Desempeño llamada por asesor",
-    page_icon="🎓",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# ================== 2. CARGA DEL LOGO ==================
-logo_path = Path(__file__).parent / "data" / "CUN-1200X1200.png"
-
-encoded_logo = ""
-if logo_path.exists():
-    with open(logo_path, "rb") as img_file:
-        encoded_logo = base64.b64encode(img_file.read()).decode()
-else:
-    st.warning(f"⚠️ Logo no encontrado en: {logo_path}")
-
-# ================== 3. ESTILOS CSS PERSONALIZADOS ==================
-st.markdown(f"""
-
 <style>
     .stApp > header { display: none !important; }
 
@@ -87,13 +62,3 @@ st.markdown(f"""
     <img src="{{ url_for('static', filename='tu_imagen.png') }}" alt="Imagen 1">
     <img src="{{ url_for('static', filename='tu_imagen.png') }}" alt="Imagen 2">
 </div>
-
-# ================== 4. CONTENIDO PRINCIPAL ==================
-st.markdown('<div class="main-title">DESEMPEÑO LLAMADA POR ASESOR</div>', unsafe_allow_html=True)
-
-if encoded_logo:
-    st.markdown(f"""
-        <div class="image-container">
-            <img src='data:image/png;base64,{encoded_logo}' class='logo-img'>
-        </div>
-    """, unsafe_allow_html=True)

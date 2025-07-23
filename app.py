@@ -66,13 +66,15 @@ st.markdown(
             padding: 0 50px;
             text-shadow: 2px 2px 12px rgba(0, 255, 0, 0.3);
         }
-        .logo-img {
-            max-width: 50px;
-            height: auto;
+            .logo-img {
+            width: 200px; /* o el tamaño que desees */
+            height: 200px;
+            object-fit: contain; /* para que mantenga la proporción */
             border-radius: 15px;
             box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
             background-color: white;
         }
+
         .stAlert {
             background-color: #333 !important;
             color: #fff !important;

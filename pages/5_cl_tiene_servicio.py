@@ -1,13 +1,14 @@
 # ===================================================
 # PASO 1: Importación de librerías necesarias
 # ===================================================
+import streamlit as st
 import pandas as pd
 from pathlib import Path
-import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-#import locale # Esta librería no se usa, se podría quitar si no la necesitas más adelante
 import datetime
+import base64  # necesario para codificar imágenes
+
 
 # ===================================================
 # PASO 2: Configuración inicial de la app
@@ -18,9 +19,7 @@ st.set_page_config(layout="wide")
 # PASO 3: Carga y preprocesamiento del archivo principal
 # ===================================================
 
-from pathlib import Path
-import pandas as pd
-import streamlit as st
+
 
 # Definir la ruta base del proyecto (sube desde /pages hasta la raíz del proyecto)
 carpeta_base = Path(__file__).resolve().parent.parent

@@ -18,7 +18,7 @@ st.set_page_config(
 current_dir = Path(__file__).parent
 logo_folder_name = "data"
 logo_path1 = current_dir / logo_folder_name / "CUN-1200X1200.png"
-logo_path2 = current_dir / logo_folder_name / "coe.jpeg"
+# Se eliminó la carga de logo_path2 = current_dir / logo_folder_name / "coe.jpeg"
 # La ruta de tu imagen de fondo ahora es 'tablero4.jpg'
 background_image_path = current_dir / logo_folder_name / "tablero4.jpg" 
 
@@ -34,7 +34,7 @@ def encode_image(path):
         return ""
 
 encoded_logo1 = encode_image(logo_path1)
-encoded_logo2 = encode_image(logo_path2)
+# Se eliminó encoded_logo2 = encode_image(logo_path2)
 encoded_background_image = encode_image(background_image_path) # Codifica la imagen de fondo
 
 # ===================================================
@@ -118,22 +118,17 @@ st.markdown(
 )
 
 # ===================================================
-# 5. Mostrar las dos imágenes en columnas
+# 5. Mostrar la imagen en una sola columna
 # ===================================================
-if encoded_logo1 and encoded_logo2:
-    col1, col2 = st.columns(2)
+if encoded_logo1: # La condición ahora solo verifica el primer logo
+    col1 = st.columns(1) # Se define una sola columna
     with col1:
         st.markdown(
             f"<div style='text-align:center;'><img src='data:image/png;base64,{encoded_logo1}' class='logo-img'></div>",
             unsafe_allow_html=True
         )
-    with col2:
-        st.markdown(
-            f"<div style='text-align:center;'><img src='data:image/jpeg;base64,{encoded_logo2}' class='logo-img'></div>",
-            unsafe_allow_html=True
-        )
 else:
-    st.warning("⚠️ No se pudieron cargar una o ambas imágenes de logo.")
+    st.warning("⚠️ No se pudo cargar la imagen del logo.")
 
 # Contenido de tu aplicación iría aquí
 st.write("¡Bienvenido a la aplicación de desempeño de llamadas!")

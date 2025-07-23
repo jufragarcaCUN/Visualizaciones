@@ -24,7 +24,7 @@ excel_file_path = data_folder_path / "Ventas se le tiene_hoy.xlsx"
 df = pd.read_excel(excel_file_path)
 
 # Ruta de la imagen COE.jpeg (¡en mayúsculas!)
-logo_coe_path = data_folder_path / "COE.jpeg"
+logo_coe_path = data_folder_path / "COE.jpg"
 
 # Función para codificar la imagen a Base64
 def encode_image(path):

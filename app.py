@@ -13,12 +13,14 @@ st.set_page_config(
 )
 
 # ===================================================
-# 2. Rutas y carga de los logos
+# 2. Rutas y carga de los logos y la imagen de fondo
 # ===================================================
 current_dir = Path(__file__).parent
 logo_folder_name = "data"
 logo_path1 = current_dir / logo_folder_name / "CUN-1200X1200.png"
 logo_path2 = current_dir / logo_folder_name / "coe.jpeg"
+# La ruta de tu imagen de fondo ahora es 'tablero4.jpg'
+background_image_path = current_dir / logo_folder_name / "tablero4.jpg" 
 
 def encode_image(path):
     try:
@@ -33,31 +35,40 @@ def encode_image(path):
 
 encoded_logo1 = encode_image(logo_path1)
 encoded_logo2 = encode_image(logo_path2)
+encoded_background_image = encode_image(background_image_path) # Codifica la imagen de fondo
 
 # ===================================================
 # 3. Estilos CSS personalizados
 # ===================================================
 st.markdown(
-    """
+    f"""
     <style>
-        .stApp > header {
+        .stApp > header {{
             display: none !important;
-        }
-        .stApp {
-            background-color: #007A33;
+        }}
+        .stApp {{
+            background-color: #007A33; /* Color de fallback si la imagen no carga */
             color: #ff;
             font-size: 16px;
-        }
-        .main .block-container {
+            {'background-image: url(data:image/jpeg;base64,' + encoded_background_image + ');' if encoded_background_image else ''}
+            background-size: cover; /* Ajusta la imagen para cubrir todo el contenedor */
+            background-repeat: no-repeat; /* Evita que la imagen se repita */
+            background-attachment: fixed; /* Mantiene la imagen fija al hacer scroll */
+            background-position: center center; /* Centra la imagen */
+        }}
+        .main .block-container {{
             padding-left: 1rem;
             padding-right: 1rem;
-        }
-        .title-container {
+            background-color: rgba(255, 255, 255, 0.7); /* Fondo semi-transparente para que el contenido sea legible sobre la imagen */
+            border-radius: 10px;
+            padding: 20px;
+        }}
+        .title-container {{
             width: 100%;
             padding: 40px 0;
             margin: 0 auto;
-        }
-        .main-title {
+        }}
+        .main-title {{
             font-family: 'Montserrat', sans-serif;
             font-size: 7rem !important;
             font-weight: 700;
@@ -65,30 +76,30 @@ st.markdown(
             text-align: center;
             padding: 0 50px;
             text-shadow: 2px 2px 12px rgba(0, 255, 0, 0.3);
-        }
-            .logo-img {
+        }}
+            .logo-img {{
             width: 200px; /* o el tamaño que desees */
             height: 200px;
             object-fit: contain; /* para que mantenga la proporción */
             border-radius: 15px;
             box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
             background-color: white;
-        }
+        }}
 
-        .stAlert {
+        .stAlert {{
             background-color: #333 !important;
             color: #fff !important;
             border-left: 5px solid #31A354 !important;
-        }
-        [data-testid="stSidebar"] > div:first-child {
+        }}
+        [data-testid="stSidebar"] > div:first-child {{
             background-color: #E0E0E0;
             padding: 1rem;
-        }
-        [data-testid="stSidebar"] * {
+        }}
+        [data-testid="stSidebar"] * {{
             font-size: 20px !important;
             font-weight: 600;
             color: #000 !important;
-        }
+        }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -122,4 +133,8 @@ if encoded_logo1 and encoded_logo2:
             unsafe_allow_html=True
         )
 else:
-    st.warning("⚠️ No se pudieron cargar una o ambas imágenes.")
+    st.warning("⚠️ No se pudieron cargar una o ambas imágenes de logo.")
+
+# Contenido de tu aplicación iría aquí
+st.write("¡Bienvenido a la aplicación de desempeño de llamadas!")
+st.write("Aquí puedes agregar todos los elementos de tu interfaz, como gráficos, tablas, selectores, etc.")

@@ -40,7 +40,7 @@ df = df[df['Agente'].isin(agentes_sel)]
 
 # --- MÉTRICAS RESUMEN ---
 st.subheader("📋 Resumen General")
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(5)
 col1.metric("Puntaje promedio", f"{df['Puntaje_Total_%'].mean():.2f}%")
 col2.metric("Confianza", f"{df['Confianza'].mean():.2f}%")
 col3.metric("Polaridad", f"{df['Polarity'].mean():.2f}")

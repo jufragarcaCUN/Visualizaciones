@@ -19,8 +19,12 @@ df = pd.read_excel(archivo)
 current_dir = Path(__file__).parent
 logo_folder_name = "data"
 
-# Ruta de la imagen coe.jpeg
-logo_path2 = current_dir / logo_folder_name / "coe.jpeg"
+from pathlib import Path
+
+# Ruta correcta desde /pages al folder /data
+current_dir = Path(__file__).resolve().parent.parent
+logo_path2 = current_dir / "data" / "coe.jpeg"
+
 
 # Función para codificar la imagen
 def encode_image(path):

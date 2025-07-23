@@ -23,8 +23,8 @@ data_folder_path = project_root / "data"
 excel_file_path = data_folder_path / "Ventas se le tiene_hoy.xlsx"
 df = pd.read_excel(excel_file_path)
 
-# Ruta de la imagen coe.jpeg
-logo_coe_path = data_folder_path / "COE.jpeg" # Usamos un nombre de variable más descriptivo
+# Ruta de la imagen COE.jpeg (¡en mayúsculas!)
+logo_coe_path = data_folder_path / "COE.jpeg"
 
 # Función para codificar la imagen a Base64
 def encode_image(path):
@@ -32,14 +32,14 @@ def encode_image(path):
         with open(path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
     except FileNotFoundError:
-        st.error(f"❌ Error: No se encontró la imagen en: {path}. Verifica la ruta.")
+        st.error(f"❌ Error: No se encontró la imagen en: {path}. Verifica la ruta y las mayúsculas/minúsculas.")
         return ""
     except Exception as e:
         st.error(f"❌ Error al cargar la imagen {path}: {e}")
         return ""
 
-# Cargar y codificar la imagen coe.jpeg
-encoded_logo_coe = encode_image(logo_coe_path) # Usamos la variable más descriptiva
+# Cargar y codificar la imagen COE.jpeg
+encoded_logo_coe = encode_image(logo_coe_path)
 
 # ===================================================
 # 3. Preprocesamiento de Datos
@@ -104,14 +104,14 @@ if encoded_logo_coe:
             >
                 <img src='data:image/jpeg;base64,{encoded_logo_coe}'
                      style='width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px;' />
-                
+                <div style='font-size: 18px; font-weight: bold; color: #007A33;'>¡Revisa los datos!</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 else:
     with col6: # Si el logo no carga, al menos mostrar un warning o un placeholder
-        st.warning("⚠️ Imagen 'coe.jpeg' no cargada para la métrica adicional.")
+        st.warning("⚠️ Imagen 'COE.jpeg' no cargada para la métrica adicional.")
 
 
 # ===================================================

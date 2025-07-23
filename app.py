@@ -67,7 +67,7 @@ st.markdown(
             text-shadow: 2px 2px 12px rgba(0, 255, 0, 0.3);
         }
         .logo-img {
-            max-width: 100px;
+            max-width: 50px;
             height: auto;
             border-radius: 15px;
             box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);

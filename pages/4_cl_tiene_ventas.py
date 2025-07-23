@@ -63,8 +63,21 @@ col3.metric("Polaridad", f"{df['Polarity'].mean():.2f}")
 col4.metric("Subjetividad", f"{df['Subjectivity'].mean():.2f}")
 col5.metric("Total llamadas", len(df)) # Sin la coma al final
 
-# Tu métrica adicional en la nueva sexta columna
-col6.metric("Mensaje Importante", "¡Revisa los datos!") 
+# Asegúrate de que encoded_logo2 esté disponible antes
+if encoded_logo2:
+    with col6:
+        st.markdown(
+            f"""
+            <div style='text-align:center;'>
+                <img src='data:image/jpeg;base64,{encoded_logo2}' class='logo-img' style='margin-bottom:10px;'/>
+                <p style='font-size:18px; font-weight:bold; color:#31A354;'>¡Revisa los datos!</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+else:
+    col6.warning("⚠️ Imagen no cargada")
+
 
 # --- GRÁFICO 1: Puntaje por Agente ---
 st.subheader("🎯 Puntaje Total por Agente")

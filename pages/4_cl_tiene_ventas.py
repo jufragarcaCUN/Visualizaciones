@@ -6,6 +6,21 @@ from pathlib import Path
 import datetime
 
 st.set_page_config(layout="wide")
+# ===================================================
+# 5. Mostrar solo el segundo logo centrado (coe.jpeg)
+# ===================================================
+if encoded_logo2:
+    st.markdown(
+        f"""
+        <div style='text-align:center; margin-bottom: 30px;'>
+            <img src='data:image/jpeg;base64,{encoded_logo2}' class='logo-img'>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.warning("⚠️ No se pudo cargar la imagen del logo.")
+
 
 # --- CARGA DE ARCHIVO ---
 archivo = Path(__file__).resolve().parent.parent / "data" / "Ventas se le tiene_hoy.xlsx"

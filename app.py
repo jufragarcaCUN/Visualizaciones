@@ -45,7 +45,7 @@ st.markdown(
         }
         .stApp {
             background-color: #007A33;
-            color: #ffffff;
+            color: #ff;
             font-size: 16px;
         }
         .main .block-container {

@@ -4,125 +4,129 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 import datetime
-import base64
+import base64 # ¡Esta importación debe estar aquí y solo aquí!
 
-
+# ===================================================
+# 1. Configuración inicial de la página
+# ===================================================
 st.set_page_config(layout="wide")
 
-
-
-# --- CARGA DE ARCHIVO ---
-archivo = Path(__file__).resolve().parent.parent / "data" / "Ventas se le tiene_hoy.xlsx"
-df = pd.read_excel(archivo)
-
 # ===================================================
-# 2. Rutas y carga de los logos
+# 2. Rutas y carga de datos y logos
 # ===================================================
-current_dir = Path(__file__).parent
-logo_folder_name = "data"
+# Define la ruta base para el proyecto desde la ubicación del script actual.
+# Asume que el script está en /visualizaciones/pages y 'data' está en /visualizaciones/data
+project_root = Path(__file__).resolve().parent.parent
+data_folder_path = project_root / "data"
 
+# Ruta del archivo Excel
+excel_file_path = data_folder_path / "Ventas se le tiene_hoy.xlsx"
+df = pd.read_excel(excel_file_path)
 
+# Ruta de la imagen coe.jpeg
+logo_coe_path = data_folder_path / "coe.jpeg" # Usamos un nombre de variable más descriptivo
 
-# Ruta correcta desde /pages al folder /data
-current_dir = Path(__file__).resolve().parent.parent
-logo_path2 = current_dir / "data" / "coe.jpeg"
-
-
-# Función para codificar la imagen
+# Función para codificar la imagen a Base64
 def encode_image(path):
     try:
         with open(path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
     except FileNotFoundError:
-        st.error(f"❌ No se encontró la imagen: {path}")
+        st.error(f"❌ Error: No se encontró la imagen en: {path}. Verifica la ruta.")
         return ""
     except Exception as e:
-        st.error(f"❌ Error al cargar imagen {path}: {e}")
+        st.error(f"❌ Error al cargar la imagen {path}: {e}")
         return ""
 
-# Importar (cargar y codificar) la imagen coe.jpeg
-encoded_logo2 = encode_image(logo_path2)
+# Cargar y codificar la imagen coe.jpeg
+encoded_logo_coe = encode_image(logo_coe_path) # Usamos la variable más descriptiva
 
-
-# --- PREPROCESAMIENTO ---
+# ===================================================
+# 3. Preprocesamiento de Datos
+# ===================================================
 df['fecha_convertida'] = pd.to_datetime(df['Fecha'], errors='coerce')
 df['Agente'] = df['Agente'].astype(str)
 for col in ['Puntaje_Total_%', 'Confianza', 'Polarity', 'Subjectivity']:
-    df[col] = pd.to_numeric(df[col].astype(str).str.replace('%', ''), errors='coerce')
+    df[col] = pd.to_numeric(df[col].astype(str).replace('%', ''), errors='coerce')
 
-# --- FILTROS ---
+# ===================================================
+# 4. Filtros en la barra lateral
+# ===================================================
 st.sidebar.title("🎛️ Filtros")
 
-# Estado de la llamada
-estado_col = "Estado de la LLamada"
+# Filtro por Estado de la Llamada
+estado_col = "Estado de la LLamada" # Asegúrate que este nombre de columna sea exacto
 if estado_col in df.columns:
     estados = ["Todos"] + sorted(df[estado_col].dropna().unique())
     estado_sel = st.sidebar.selectbox("Estado de la Llamada", estados)
     if estado_sel != "Todos":
         df = df[df[estado_col] == estado_sel]
+else:
+    st.sidebar.warning(f"La columna '{estado_col}' no se encontró en los datos.")
 
-# Fecha
+# Filtro por Rango de Fechas
 min_f, max_f = df['fecha_convertida'].min(), df['fecha_convertida'].max()
-fecha_ini, fecha_fin = st.sidebar.date_input("📅 Rango de Fechas", (min_f.date(), max_f.date()))
-df = df[(df['fecha_convertida'] >= pd.Timestamp(fecha_ini)) & (df['fecha_convertida'] <= pd.Timestamp(fecha_fin))]
+fecha_ini, fecha_fin = st.sidebar.date_input(
+    "📅 Rango de Fechas",
+    (min_f.date(), max_f.date() if pd.notna(max_f) else datetime.date.today())
+)
+df = df[(df['fecha_convertida'] >= pd.Timestamp(fecha_ini)) &
+        (df['fecha_convertida'] <= pd.Timestamp(fecha_fin))]
 
-# Agentes
+# Filtro por Agentes
 agentes = sorted(df['Agente'].dropna().unique())
 agentes_sel = st.sidebar.multiselect("👤 Agentes", agentes, default=agentes)
 df = df[df['Agente'].isin(agentes_sel)]
 
-# --- MÉTRICAS RESUMEN ---
+# ===================================================
+# 5. Métricas Resumen
+# ===================================================
 st.subheader("📋 Resumen General")
-col1, col2, col3, col4, col5, col6 = st.columns(6) # ¡CORREGIDO: Ahora son 6 columnas!
+col1, col2, col3, col4, col5, col6 = st.columns(6) # Definición correcta de 6 columnas
 
 col1.metric("Puntaje promedio", f"{df['Puntaje_Total_%'].mean():.2f}%")
 col2.metric("Confianza", f"{df['Confianza'].mean():.2f}%")
 col3.metric("Polaridad", f"{df['Polarity'].mean():.2f}")
 col4.metric("Subjetividad", f"{df['Subjectivity'].mean():.2f}")
-col5.metric("Total llamadas", len(df)) # Sin la coma al final
-with col6:
-    st.markdown(
-        f"""
-        <div style='
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);'
-        >
-            <img src='data:image/jpeg;base64,{encoded_logo2}' style='width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px;' />
-            <div style='font-size: 18px; font-weight: bold; color: #007A33;'>¡Revisa los datos!</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+col5.metric("Total llamadas", len(df))
 
-
-# Asegúrate de que encoded_logo2 esté disponible antes
-if encoded_logo2:
+# La métrica adicional en la sexta columna con el logo y el mensaje
+if encoded_logo_coe:
     with col6:
         st.markdown(
             f"""
-            <div style='text-align:center;'>
-                <img src='data:image/jpeg;base64,{encoded_logo2}' class='logo-img' style='margin-bottom:10px;'/>
-                <p style='font-size:18px; font-weight:bold; color:#31A354;'>¡Revisa los datos!</p>
+            <div style='
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                padding: 15px;
+                text-align: center;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);'
+            >
+                <img src='data:image/jpeg;base64,{encoded_logo_coe}'
+                     style='width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px;' />
+                <div style='font-size: 18px; font-weight: bold; color: #007A33;'>¡Revisa los datos!</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 else:
-    col6.warning("⚠️ Imagen no cargada")
+    with col6: # Si el logo no carga, al menos mostrar un warning o un placeholder
+        st.warning("⚠️ Imagen 'coe.jpeg' no cargada para la métrica adicional.")
 
+
+# ===================================================
+# 6. Gráficos
+# ===================================================
 
 # --- GRÁFICO 1: Puntaje por Agente ---
 st.subheader("🎯 Puntaje Total por Agente")
 fig1 = px.bar(
-    df.groupby("Agente")["Puntaje_Total_%"].mean().reset_index(), 
+    df.groupby("Agente")["Puntaje_Total_%"].mean().reset_index(),
     x="Agente",
     y="Puntaje_Total_%",
     text="Puntaje_Total_%",
     color="Puntaje_Total_%",
-    color_continuous_scale="Greens"  # ⬅️ Escala verde forzada
+    color_continuous_scale="Greens"
 )
 fig1.update_traces(texttemplate='%{y:.2f}%', textposition='outside')
 fig1.update_layout(xaxis_tickangle=-45)
@@ -137,7 +141,7 @@ fig2 = px.bar(
     y="Polarity",
     text="Polarity",
     color="Polarity",
-    color_continuous_scale="Greens"  # ⬅️ Verde aplicado
+    color_continuous_scale="Greens"
 )
 fig2.update_traces(texttemplate='%{y:.2f}', textposition='outside')
 fig2.update_layout(xaxis_tickangle=-45)
@@ -146,7 +150,7 @@ st.plotly_chart(fig2, use_container_width=True)
 
 # --- HEATMAP ---
 st.subheader("🗺️ Heatmap de Métricas")
-metricas = ['apertura', 'presentacion_beneficio', 'creacion_necesidad', 
+metricas = ['apertura', 'presentacion_beneficio', 'creacion_necesidad',
             'manejo_objeciones', 'cierre', 'confirmacion_bienvenida', 'consejos_cierre']
 metricas_existentes = [m for m in metricas if m in df.columns]
 if metricas_existentes:
@@ -156,7 +160,9 @@ if metricas_existentes:
 else:
     st.info("No hay columnas de métricas para el heatmap.")
 
-# --- INDICADORES TIPO GAUGE ---
+# ===================================================
+# 7. Indicadores Tipo Gauge
+# ===================================================
 colg1, colg2 = st.columns(2)
 
 with colg1:
@@ -201,7 +207,9 @@ with colg2:
     ))
     st.plotly_chart(fig_g2, use_container_width=False)
 
-# --- BURBUJAS: Polaridad vs Confianza ---
+# ===================================================
+# 8. Gráfico de Burbujas: Polaridad vs Confianza
+# ===================================================
 st.subheader("📈 Polaridad vs Confianza por Agente")
 df_bubble = df.groupby("Agente").agg(
     promedio_polaridad=('Polarity', 'mean'),
@@ -227,14 +235,17 @@ fig_bubble = px.scatter(
 fig_bubble.update_layout(
     plot_bgcolor="white",
     height=600,
-    xaxis=dict(title="Polaridad", range=[-0.1, 0.1]),   # ⬅️ Rango X ajustado
-    yaxis=dict(title="Confianza (%)", range=[-1, 1]) # ⬅️ Eje Y desde -1
+    xaxis=dict(title="Polaridad", range=[-0.1, 0.1]),
+    yaxis=dict(title="Confianza (%)", range=[-1, 1])
 )
 
 st.plotly_chart(fig_bubble, use_container_width=True)
 
-# --- ACORDEONES POR AGENTE ---
+# ===================================================
+# 9. Acordeones por Agente (Detalle de Registros)
+# ===================================================
 st.subheader("🧾 Detalle por Agente")
+# Lista de columnas a ocultar en el detalle del acordeón
 columnas_ocultas = [
     "Identificador único", "Telefono", "Puntaje_Total_%", "Polarity", "Subjectivity",
     "Confianza", "Palabra", "Oraciones", "asesor_corto", "fecha_convertida",
@@ -249,14 +260,16 @@ columnas_ocultas = [
 for agente in df['Agente'].unique():
     subset = df[df['Agente'] == agente]
     with st.expander(f"🧑 Detalle de: {agente} ({len(subset)} registros)"):
-        for idx, row in subset.iterrows():
-            st.write(f"📄 Registro #{idx}")
-            for col in subset.columns:
-                if col in columnas_ocultas:
-                    continue
-                val = row[col]
-                if pd.isna(val) or val == '':
-                    st.write(f"🔹 {col}: N/A ❌")
-                else:
-                    st.write(f"🔹 {col}: {val}")
-
+        if not subset.empty:
+            for idx, row in subset.iterrows():
+                st.write(f"--- Registro #{idx} ---")
+                for col in subset.columns:
+                    if col in columnas_ocultas:
+                        continue
+                    val = row[col]
+                    if pd.isna(val) or str(val).strip() == '':
+                        st.write(f"🔹 **{col}**: N/A ❌")
+                    else:
+                        st.write(f"🔹 **{col}**: {val}")
+        else:
+            st.info(f"No hay registros disponibles para el agente {agente} con los filtros actuales.")

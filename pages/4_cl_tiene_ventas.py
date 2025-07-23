@@ -40,12 +40,14 @@ df = df[df['Agente'].isin(agentes_sel)]
 
 # --- MÉTRICAS RESUMEN ---
 st.subheader("📋 Resumen General")
-col1, col2, col3, col4, col5, col6 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6) # ¡CORREGIDO: Ahora son 6 columnas!
+
 col1.metric("Puntaje promedio", f"{df['Puntaje_Total_%'].mean():.2f}%")
 col2.metric("Confianza", f"{df['Confianza'].mean():.2f}%")
 col3.metric("Polaridad", f"{df['Polarity'].mean():.2f}")
 col4.metric("Subjetividad", f"{df['Subjectivity'].mean():.2f}")
-col5.metric("Total llamadas", len(df)),
+col5.metric("Total llamadas", len(df)) # Sin la coma al final
+
 # Tu métrica adicional en la nueva sexta columna
 col6.metric("Mensaje Importante", "¡Revisa los datos!") 
 
